@@ -1,0 +1,215 @@
+{
+  "name": "08 — Content Repurposing Engine → Multi-canal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content-repurpose",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: content-repurpose",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "content-repurpose"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\":\"Unauthorized\"}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"processing\"}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "200 OK - Procesando",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Sos el agente de contenido de TuAgenteStore, marketplace B2B de agentes IA para América Latina.\n\nTone: directo, sin buzzwords, ejemplos reales, orientado a resultados.\nVoz: cercana pero profesional. Como un experto que explica a un par.\n\nGenera contenido para TODOS estos canales en base al input recibido. Respondé ÚNICAMENTE con JSON válido:\n\n{\n  \"linkedin\": {\n    \"post\": \"[post completo, 150-200 palabras, con gancho, desarrollo y CTA. Usar emojis estratégicos]\",\n    \"hashtags\": [\"#tag1\", \"#tag2\", \"#tag3\"]\n  },\n  \"instagram\": {\n    \"caption\": \"[caption, 80-120 palabras, gancho fuerte en primera línea, CTA con ]\",\n    \"carousel_slides\": [\"Slide 1: [título]\", \"Slide 2: [punto]\", \"Slide 3: [punto]\", \"Slide 4: [punto]\", \"Slide 5: CTA\"],\n    \"hashtags\": [\"#tag1\", \"#tag2\"]\n  },\n  \"tiktok\": {\n    \"script\": \"[guión para video 30-60 seg. Formato: HOOK (3 seg) → DESARROLLO (20 seg) → CTA (5 seg)]\",\n    \"hook\": \"[solo el gancho de apertura]\"\n  },\n  \"twitter\": {\n    \"thread\": [\"Tweet 1 (gancho)\", \"Tweet 2\", \"Tweet 3\", \"Tweet 4\", \"Tweet 5 (CTA)\"]\n  },\n  \"email\": {\n    \"subject\": \"[línea de asunto, max 50 chars]\",\n    \"preheader\": \"[preview text, max 90 chars]\",\n    \"body\": \"[cuerpo del email, 150-250 palabras]\"\n  },\n  \"whatsapp_broadcast\": {\n    \"message\": \"[mensaje corto para broadcast, max 3 párrafos, informal pero con CTA]\"\n  },\n  \"topic_summary\": \"[resumen del tema en 1 oración]\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "=INPUT:\nTema: {{ $json.body.topic }}\nFormato sugerido: {{ $json.body.format || 'libre' }}\nAgente destacado: {{ $json.body.agent || 'no especificado' }}\nIndustria target: {{ $json.body.industry || 'general' }}\nContexto adicional: {{ $json.body.context || 'ninguno' }}"
+            }
+          ]
+        },
+        "options": { "temperature": 0.7 }
+      },
+      "id": "generate-content",
+      "name": "OpenAI: Generar Contenido Multi-canal",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content || '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = match ? JSON.parse(match[0]) : {};\n} catch(e) {\n  parsed = { error: 'parse_failed', raw };\n}\n\nconst payload = $('Webhook: content-repurpose').first().json.body;\n\nreturn [{\n  json: {\n    ...parsed,\n    meta: {\n      topic: payload.topic,\n      agent: payload.agent,\n      industry: payload.industry,\n      generated_at: new Date().toISOString(),\n      requested_by: payload.requested_by || 'system'\n    }\n  }\n}];"
+      },
+      "id": "parse-content",
+      "name": "Parsear Contenido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Content Calendar", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toISOString().split('T')[0] }}",
+            "Platform": "LinkedIn",
+            "Topic/Agent": "={{ $json.meta.topic }}",
+            "Format": "Post",
+            "Status": "generated",
+            "Generated_Content": "={{ $json.linkedin?.post + '\\n\\n' + ($json.linkedin?.hashtags || []).join(' ') }}",
+            "Post_URL": "",
+            "Engagement": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "save-linkedin",
+      "name": "Sheets: Guardar LinkedIn",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1300, 250]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Content Calendar", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toISOString().split('T')[0] }}",
+            "Platform": "Instagram",
+            "Topic/Agent": "={{ $json.meta.topic }}",
+            "Format": "Carrusel",
+            "Status": "generated",
+            "Generated_Content": "={{ $json.instagram?.caption + '\\n\\nSlides: ' + ($json.instagram?.carousel_slides || []).join(' | ') }}",
+            "Post_URL": "",
+            "Engagement": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "save-instagram",
+      "name": "Sheets: Guardar Instagram",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Content Calendar", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toISOString().split('T')[0] }}",
+            "Platform": "TikTok",
+            "Topic/Agent": "={{ $json.meta.topic }}",
+            "Format": "Video Script",
+            "Status": "generated",
+            "Generated_Content": "={{ $json.tiktok?.script }}",
+            "Post_URL": "",
+            "Engagement": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "save-tiktok",
+      "name": "Sheets: Guardar TikTok",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1300, 550]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "=✅ Contenido generado: {{ $json.meta.topic }}",
+        "message": "=Se generó contenido para todos los canales:\n\n📌 Tema: {{ $json.meta.topic }}\n🤖 Agente: {{ $json.meta.agent }}\n🎯 Industria: {{ $json.meta.industry }}\n\n--- LINKEDIN ---\n{{ $json.linkedin?.post }}\n\n--- INSTAGRAM (Caption) ---\n{{ $json.instagram?.caption }}\n\n--- TIKTOK (Hook) ---\n{{ $json.tiktok?.hook }}\n\n--- EMAIL ---\nAsunto: {{ $json.email?.subject }}\n{{ $json.email?.body }}\n\n--- WHATSAPP ---\n{{ $json.whatsapp_broadcast?.message }}\n\n✅ Todo guardado en Content Calendar (Google Sheets)",
+        "options": {}
+      },
+      "id": "email-admin",
+      "name": "Gmail: Enviar a Admin para Revisión",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1500, 400]
+    }
+  ],
+  "connections": {
+    "Webhook: content-repurpose": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }],
+        [{ "node": "200 OK - Procesando", "type": "main", "index": 0 }]
+      ]
+    },
+    "200 OK - Procesando": {
+      "main": [[{ "node": "OpenAI: Generar Contenido Multi-canal", "type": "main", "index": 0 }]]
+    },
+    "OpenAI: Generar Contenido Multi-canal": {
+      "main": [[{ "node": "Parsear Contenido", "type": "main", "index": 0 }]]
+    },
+    "Parsear Contenido": {
+      "main": [[
+        { "node": "Sheets: Guardar LinkedIn", "type": "main", "index": 0 },
+        { "node": "Sheets: Guardar Instagram", "type": "main", "index": 0 },
+        { "node": "Sheets: Guardar TikTok", "type": "main", "index": 0 }
+      ]]
+    },
+    "Sheets: Guardar LinkedIn": {
+      "main": [[{ "node": "Gmail: Enviar a Admin para Revisión", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": ["content", "openai", "multi-canal"],
+  "notes": "Trigger: POST /webhook/content-repurpose con { topic, format, agent, industry, context }. Genera LinkedIn + Instagram + TikTok + Twitter thread + Email + WhatsApp. Guarda en Content Calendar sheet y notifica por email para revisión antes de publicar."
+}

@@ -1,0 +1,150 @@
+{
+  "name": "10 — Daily Reporting Feed → Resumen diario KPIs",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 12 * * *" }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule: 9 AM Argentina (12 UTC)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://tuagentestore.com/api/admin/dashboard",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-dashboard-stats",
+      "name": "GET /api/admin/dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://tuagentestore.com/api/admin/reservations?status=all&period=today",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-reservations",
+      "name": "GET /api/admin/reservations (hoy)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 450]
+    },
+    {
+      "parameters": {
+        "jsCode": "const dash = $('GET /api/admin/dashboard').first().json;\nconst reservas = $('GET /api/admin/reservations (hoy)').first().json;\n\nconst today = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' });\nconst hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' });\n\nconst leadsHoy = dash?.leads_today || 0;\nconst demosHoy = dash?.demos_today || 0;\nconst reservasHoy = dash?.reservations_today || 0;\nconst totalLeads = dash?.total_leads || 0;\nconst totalDemos = dash?.total_demos || 0;\nconst tasaConversion = totalLeads > 0 ? ((totalDemos / totalLeads) * 100).toFixed(1) : 0;\n\nconst reservasList = (reservas?.reservations || []).slice(0, 5).map(r => \n  `  • ${r.name} (${r.company || 'sin empresa'}) — ${r.agent_interest || 'general'} — ${r.status}`\n).join('\\n') || '  Sin reservas hoy';\n\nconst report = `📊 REPORTE DIARIO TUAGENTESTORE\n${today} — ${hora}\n${'─'.repeat(45)}\n\n🎯 HOY:\n  • Leads nuevos: ${leadsHoy}\n  • Demos iniciadas: ${demosHoy}\n  • Reservas recibidas: ${reservasHoy}\n\n📈 ACUMULADO:\n  • Total leads: ${totalLeads}\n  • Total demos: ${totalDemos}\n  • Tasa conversión lead→demo: ${tasaConversion}%\n\n📋 RESERVAS DE HOY:\n${reservasList}\n\n${'─'.repeat(45)}\nhttps://tuagentestore.com/admin`;\n\nreturn [{ json: { report, leadsHoy, demosHoy, reservasHoy, totalLeads, totalDemos, tasaConversion, today } }];"
+      },
+      "id": "compile-report",
+      "name": "Compilar Reporte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 380]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "=📊 Reporte diario TuAgenteStore — {{ $json.today }}",
+        "message": "={{ $json.report }}",
+        "options": {}
+      },
+      "id": "email-report",
+      "name": "Gmail: Reporte al Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "📊 KPIs", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ new Date().toISOString().split('T')[0] }}",
+            "Leads_Hoy": "={{ $json.leadsHoy }}",
+            "Demos_Hoy": "={{ $json.demosHoy }}",
+            "Reservas_Hoy": "={{ $json.reservasHoy }}",
+            "Total_Leads": "={{ $json.totalLeads }}",
+            "Conversion_%": "={{ $json.tasaConversion }}"
+          }
+        },
+        "where": {
+          "values": [{ "column": "Fecha", "value": "={{ new Date().toISOString().split('T')[0] }}" }]
+        },
+        "options": { "skipEmptyFields": true }
+      },
+      "id": "update-kpi-sheet",
+      "name": "Sheets: Actualizar KPIs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 450]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Weekly Reports", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ new Date().toISOString().split('T')[0] }}",
+            "Leads": "={{ $json.leadsHoy }}",
+            "Demos": "={{ $json.demosHoy }}",
+            "Reservas": "={{ $json.reservasHoy }}",
+            "Conversion_%": "={{ $json.tasaConversion }}",
+            "Reporte_Completo": "={{ $json.report }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "append-weekly-archive",
+      "name": "Sheets: Archivar en Weekly Reports",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 600]
+    }
+  ],
+  "connections": {
+    "Schedule: 9 AM Argentina (12 UTC)": {
+      "main": [[
+        { "node": "GET /api/admin/dashboard", "type": "main", "index": 0 },
+        { "node": "GET /api/admin/reservations (hoy)", "type": "main", "index": 0 }
+      ]]
+    },
+    "GET /api/admin/dashboard": {
+      "main": [[{ "node": "Compilar Reporte", "type": "main", "index": 0 }]]
+    },
+    "GET /api/admin/reservations (hoy)": {
+      "main": [[{ "node": "Compilar Reporte", "type": "main", "index": 0 }]]
+    },
+    "Compilar Reporte": {
+      "main": [[
+        { "node": "Gmail: Reporte al Admin", "type": "main", "index": 0 },
+        { "node": "Sheets: Actualizar KPIs", "type": "main", "index": 0 },
+        { "node": "Sheets: Archivar en Weekly Reports", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1", "timezone": "America/Argentina/Buenos_Aires" },
+  "tags": ["reporting", "schedule", "kpis"],
+  "notes": "Corre todos los días a las 9 AM Argentina (12:00 UTC). Llama a /api/admin/dashboard y /api/admin/reservations, compila reporte, envía por email al admin, actualiza hoja KPIs, archiva en Weekly Reports. IMPORTANTE: el endpoint /api/admin/dashboard debe ser accesible desde n8n (mismo servidor o con autenticación)."
+}

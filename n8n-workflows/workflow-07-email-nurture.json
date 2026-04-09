@@ -1,0 +1,265 @@
+{
+  "name": "07 — Email Nurture Engine (21 días → 7 emails)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nurture-start",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: nurture-start",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "nurture-start"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\":\"Unauthorized\"}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"nurture_queued\"}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.email }}",
+        "subject": "={{ $json.body.agent_name ? '🤖 Tu agente IA para ' + $json.body.industry + ' está listo para mostrarte algo' : 'Lo que hacen los negocios que usan IA hoy' }}",
+        "message": "=Hola {{ $json.body.name }},\n\nGracias por tu interés en TuAgenteStore.\n\nTe preparé un recurso rápido: los 3 errores más comunes que cometen los negocios de {{ $json.body.industry || 'tu industria' }} cuando intentan automatizar sin IA.\n\n👉 https://tuagentestore.com/recursos/3-errores-automatizacion\n\nEn el próximo email te cuento cómo un negocio similar al tuyo lo resolvió en 2 semanas.\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day0",
+      "name": "Email Día 0: Recurso",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 1
+      },
+      "id": "wait-1",
+      "name": "Esperar 1 día",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "Caso real: de 0 a 200 leads calificados/mes con 1 agente IA",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nTe cuento el caso de Marcos, dueño de una inmobiliaria en Buenos Aires.\n\nAntes de implementar el Agente Captador: respondía WhatsApp manualmente, perdía leads fuera de horario, y el 70% nunca llegaba a una reunión.\n\nDespués: el agente responde en segundos, califica automáticamente, y agenda la reunión. Marcos solo atiende a los listos para cerrar.\n\nResultado en 30 días: +200 leads calificados, -80% tiempo en respuestas, 3x más reuniones cerradas.\n\n¿Querés ver cómo funciona para {{ $('Webhook: nurture-start').item.json.body.industry || 'tu negocio' }}?\n\n👉 https://tuagentestore.com/demo\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day1",
+      "name": "Email Día 1: Caso Real",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 2
+      },
+      "id": "wait-2",
+      "name": "Esperar 2 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "=El agente IA que más usan negocios de {{ $('Webhook: nurture-start').item.json.body.industry || 'tu sector' }}",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nBasándome en tu industria ({{ $('Webhook: nurture-start').item.json.body.industry || 'la tuya' }}), el agente que mejor funciona es:\n\n🤖 **Agente de Seguimiento Automático**\n\nQué hace:\n✅ Reactiva leads que no respondieron\n✅ Detecta objeciones y las maneja con IA\n✅ Reabre conversaciones dormidas\n✅ Agenda cuando el lead está listo\n\nResultado promedio: recupera el 30% de leads que se consideraban perdidos.\n\nVer demo en vivo → https://tuagentestore.com/agents/seguimiento-ai\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day3",
+      "name": "Email Día 3: Agente Recomendado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1700, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 2
+      },
+      "id": "wait-3",
+      "name": "Esperar 2 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1900, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "15 minutos que pueden cambiar tu operación",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nTe propongo algo concreto: una demo de 15 minutos donde ves el agente funcionando EN VIVO con tu industria.\n\nNo pitch. No PowerPoint. Solo el agente en acción.\n\n📅 Elegí el horario que mejor te queda:\nhttps://tuagentestore.com/agendar\n\nSi tenés preguntas antes, respondé este email directamente.\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day5",
+      "name": "Email Día 5: CTA Demo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [2100, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 2
+      },
+      "id": "wait-4",
+      "name": "Esperar 2 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2300, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "¿Todo bien, {{ $('Webhook: nurture-start').item.json.body.name }}?",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nSolo quería checar si recibiste los recursos que te mandé esta semana.\n\nA veces los emails caen en spam o simplemente se acumula todo. Entendido.\n\nSi querés seguir explorando, acá está todo en un lugar:\nhttps://tuagentestore.com/agents\n\nY si ya no te interesa, respondé este email y te doy de baja sin drama.\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day7",
+      "name": "Email Día 7: Check-in",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [2500, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 7
+      },
+      "id": "wait-5",
+      "name": "Esperar 7 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2700, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "Cómo saber si tu negocio está listo para IA (checklist)",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nMuchas personas preguntan: ¿cuándo conviene implementar un agente IA?\n\nTe comparto el checklist que usamos con nuestros clientes:\n\n✅ Recibís más de 50 mensajes/semana de leads\n✅ Respondés fuera de horario o tardás más de 2 horas\n✅ Perdés leads por falta de seguimiento\n✅ Querías escalar pero no querés contratar más personas\n✅ Tenés un canal principal (WhatsApp, IG, web)\n\nSi marcaste 3 o más → ya estás listo.\n\nSiguiente paso: https://tuagentestore.com/diagnostico\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day14",
+      "name": "Email Día 14: Educativo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [2900, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 7
+      },
+      "id": "wait-6",
+      "name": "Esperar 7 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [3100, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: nurture-start').item.json.body.email }}",
+        "subject": "Último email: una propuesta concreta para vos",
+        "message": "=Hola {{ $('Webhook: nurture-start').item.json.body.name }},\n\nEste es el último email de esta secuencia. No te voy a seguir escribiendo si no hay interés, lo respeto.\n\nPero antes de irme, una propuesta concreta:\n\n🎁 **Auditoría gratuita de automatización** (valor: $200)\n\nEn 30 minutos analizamos tu operación actual y te decimos exactamente qué agente te conviene, qué procesos automatizar primero, y cuánto tiempo/dinero recuperarías.\n\nSin compromiso. Sin pitch de venta.\n\n¿Agendamos? → https://tuagentestore.com/auditoria\n\nSi querés que te saque de la lista: respondé \"BAJA\" y listo.\n\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-day21",
+      "name": "Email Día 21: Oferta",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [3300, 400]
+    }
+  ],
+  "connections": {
+    "Webhook: nurture-start": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }],
+        [{ "node": "200 OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "200 OK": {
+      "main": [[{ "node": "Email Día 0: Recurso", "type": "main", "index": 0 }]]
+    },
+    "Email Día 0: Recurso": {
+      "main": [[{ "node": "Esperar 1 día", "type": "main", "index": 0 }]]
+    },
+    "Esperar 1 día": {
+      "main": [[{ "node": "Email Día 1: Caso Real", "type": "main", "index": 0 }]]
+    },
+    "Email Día 1: Caso Real": {
+      "main": [[{ "node": "Esperar 2 días", "type": "main", "index": 0 }]]
+    },
+    "Esperar 2 días": {
+      "main": [[{ "node": "Email Día 3: Agente Recomendado", "type": "main", "index": 0 }]]
+    },
+    "Email Día 3: Agente Recomendado": {
+      "main": [[{ "node": "Esperar 2 días_2", "type": "main", "index": 0 }]]
+    },
+    "Email Día 5: CTA Demo": {
+      "main": [[{ "node": "Esperar 2 días_3", "type": "main", "index": 0 }]]
+    },
+    "Email Día 7: Check-in": {
+      "main": [[{ "node": "Esperar 7 días", "type": "main", "index": 0 }]]
+    },
+    "Email Día 14: Educativo": {
+      "main": [[{ "node": "Esperar 7 días_2", "type": "main", "index": 0 }]]
+    },
+    "Esperar 7 días": {
+      "main": [[{ "node": "Email Día 14: Educativo", "type": "main", "index": 0 }]]
+    },
+    "Esperar 7 días_2": {
+      "main": [[{ "node": "Email Día 21: Oferta", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nurture", "email", "leads"],
+  "notes": "Trigger: POST /webhook/nurture-start con { email, name, industry, agent_name }. Secuencia: D0 recurso, D1 caso, D3 agente recomendado, D5 CTA demo, D7 check-in, D14 educativo, D21 oferta/baja."
+}

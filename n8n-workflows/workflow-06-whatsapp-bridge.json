@@ -1,0 +1,244 @@
+{
+  "name": "06 — WhatsApp Bridge → IA Clasifica + Responde",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-verify",
+      "name": "Webhook: Meta Verification (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 200],
+      "webhookId": "whatsapp-verify"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-message",
+      "name": "Webhook: Mensaje Entrante (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "whatsapp-message"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}"
+      },
+      "id": "respond-challenge",
+      "name": "Responder Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body;\nconst entry = body?.entry?.[0];\nconst change = entry?.changes?.[0];\nconst value = change?.value;\nconst message = value?.messages?.[0];\nconst contact = value?.contacts?.[0];\n\nif (!message) {\n  return [{ json: { skip: true } }];\n}\n\nconst text = message.text?.body || message.button?.text || '[media]';\nconst from = message.from;\nconst name = contact?.profile?.name || 'Contacto';\nconst msgId = message.id;\nconst phone_number_id = value?.metadata?.phone_number_id;\n\nreturn [{ json: { text, from, name, msgId, phone_number_id, raw: body } }];"
+      },
+      "id": "extract-message",
+      "name": "Extraer Mensaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.skip }}", "value2": true }]
+        }
+      },
+      "id": "check-skip",
+      "name": "¿Skip?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"ok\"}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-ok-skip",
+      "name": "OK (skip)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Sos un asistente de TuAgenteStore, marketplace de agentes IA.\n\nClasificá el mensaje entrante y respondé en JSON con este formato exacto:\n{\n  \"intent\": \"demo|info|price|support|schedule|unrelated\",\n  \"urgency\": \"high|medium|low\",\n  \"reply\": \"[respuesta en español, máx 2 oraciones, natural y útil]\",\n  \"needs_human\": true|false\n}\n\nReglas:\n- demo: quiere probar/ver un agente\n- info: pregunta sobre qué es TuAgenteStore\n- price: pregunta por precios o planes\n- support: cliente existente con problema\n- schedule: quiere agendar reunión/demo\n- unrelated: spam o fuera de tema\n- needs_human: true si el mensaje es complejo, una queja, o habla de dinero > $500"
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "classify-message",
+      "name": "OpenAI: Clasificar + Responder",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content || $json.text || '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = match ? JSON.parse(match[0]) : {};\n} catch(e) {\n  parsed = { intent: 'unrelated', urgency: 'low', reply: 'Gracias por escribir. Un asesor se pondrá en contacto pronto.', needs_human: true };\n}\n\nconst prev = $('Extraer Mensaje').first().json;\nreturn [{ json: { ...prev, ...parsed } }];"
+      },
+      "id": "parse-ai-response",
+      "name": "Parsear Respuesta IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 500]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.phone_number_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.WHATSAPP_BSP_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=",
+              "value": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.reply } }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-whatsapp-reply",
+      "name": "Enviar Respuesta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "WhatsApp Logs", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ new Date().toISOString() }}",
+            "Teléfono": "={{ $json.from }}",
+            "Nombre": "={{ $json.name }}",
+            "Mensaje": "={{ $json.text }}",
+            "Intent": "={{ $json.intent }}",
+            "Urgencia": "={{ $json.urgency }}",
+            "Respuesta_IA": "={{ $json.reply }}",
+            "Necesita_Humano": "={{ $json.needs_human }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-sheets",
+      "name": "Log → Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1300, 550]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.needs_human }}", "value2": true }]
+        }
+      },
+      "id": "check-human",
+      "name": "¿Necesita Humano?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "=🤖 WhatsApp → Necesita atención humana | {{ $json.name }} ({{ $json.urgency }})",
+        "message": "=Mensaje de {{ $json.name }} ({{ $json.from }}):\n\n\"{{ $json.text }}\"\n\nIntent detectado: {{ $json.intent }}\nUrgencia: {{ $json.urgency }}\n\nResponder: https://wa.me/{{ $json.from }}",
+        "options": {}
+      },
+      "id": "alert-admin",
+      "name": "Gmail: Alerta Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1700, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"ok\"}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-ok",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 550]
+    }
+  ],
+  "connections": {
+    "Webhook: Meta Verification (GET)": {
+      "main": [[{ "node": "Responder Challenge", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Mensaje Entrante (POST)": {
+      "main": [[{ "node": "Extraer Mensaje", "type": "main", "index": 0 }]]
+    },
+    "Extraer Mensaje": {
+      "main": [[{ "node": "¿Skip?", "type": "main", "index": 0 }]]
+    },
+    "¿Skip?": {
+      "main": [
+        [{ "node": "OK (skip)", "type": "main", "index": 0 }],
+        [{ "node": "OpenAI: Clasificar + Responder", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI: Clasificar + Responder": {
+      "main": [[{ "node": "Parsear Respuesta IA", "type": "main", "index": 0 }]]
+    },
+    "Parsear Respuesta IA": {
+      "main": [[
+        { "node": "Enviar Respuesta WhatsApp", "type": "main", "index": 0 },
+        { "node": "Log → Sheets", "type": "main", "index": 0 }
+      ]]
+    },
+    "Enviar Respuesta WhatsApp": {
+      "main": [[{ "node": "¿Necesita Humano?", "type": "main", "index": 0 }]]
+    },
+    "¿Necesita Humano?": {
+      "main": [
+        [{ "node": "Gmail: Alerta Admin", "type": "main", "index": 0 }],
+        [{ "node": "Responder 200", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gmail: Alerta Admin": {
+      "main": [[{ "node": "Responder 200", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": ["whatsapp", "ai", "bridge"],
+  "notes": "Conectar en Meta: Webhook URL = https://n8n.srv1565607.hstgr.cloud/webhook/whatsapp | Verify Token = WHATSAPP_VERIFY_TOKEN del .env | Suscribir a: messages"
+}

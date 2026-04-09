@@ -1,0 +1,260 @@
+{
+  "name": "09 — Testimonial Collector → Feedback + Casos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "request-testimonial",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: request-testimonial",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "request-testimonial"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\":\"Unauthorized\"}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\":\"queued\"}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.email }}",
+        "subject": "=¿Cómo va todo con tu agente IA, {{ $json.body.name }}?",
+        "message": "=Hola {{ $json.body.name }},\n\nYa pasaron {{ $json.body.days_since || '30' }} días desde que implementamos tu agente IA de TuAgenteStore. Queríamos saber cómo va todo.\n\n¿Podés tomar 2 minutos para contarnos tu experiencia?\n\n👉 Llenar encuesta (2 preguntas):\nhttps://tuagentestore.com/feedback?client={{ $json.body.tenant_id }}&token={{ $json.body.token }}\n\nPreguntas:\n1. Del 1 al 10, ¿cuánto mejoró tu operación desde que usás el agente?\n2. ¿Qué resultado concreto notaste hasta ahora?\n\nSi tenés 5 minutos y querés grabarnos un Loom contando tu caso, te regalamos 1 mes extra en tu plan.\n\nGracias por confiar en nosotros.\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-feedback-request",
+      "name": "Email: Solicitud de Feedback",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Testimoniales", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ new Date().toISOString() }}",
+            "Tenant_ID": "={{ $json.body.tenant_id }}",
+            "Nombre": "={{ $json.body.name }}",
+            "Empresa": "={{ $json.body.company }}",
+            "Industria": "={{ $json.body.industry }}",
+            "Agente": "={{ $json.body.agent_name }}",
+            "Días_Uso": "={{ $json.body.days_since }}",
+            "Status": "solicitud_enviada",
+            "Score": "",
+            "Testimonio": "",
+            "Loom_URL": "",
+            "Autorizado": "no",
+            "Publicado": "no"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-testimonial-request",
+      "name": "Sheets: Log Solicitud",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 3
+      },
+      "id": "wait-3-days",
+      "name": "Esperar 3 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: request-testimonial').item.json.body.email }}",
+        "subject": "Un recordatorio rápido — tu opinión importa",
+        "message": "=Hola {{ $('Webhook: request-testimonial').item.json.body.name }},\n\nTe mando este recordatorio porque no recibimos tu feedback todavía.\n\nSabemos que estás ocupado, por eso lo hicimos súper rápido:\n👉 2 preguntas, 90 segundos:\nhttps://tuagentestore.com/feedback?client={{ $('Webhook: request-testimonial').item.json.body.tenant_id }}&token={{ $('Webhook: request-testimonial').item.json.body.token }}\n\nTu opinión nos ayuda a mejorar el servicio para otros negocios como el tuyo.\n\nSi ya lo completaste y no lo recibimos, escribinos a hola@tuagentestore.com.\n\nGracias!\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-followup",
+      "name": "Email: Follow-up (si no respondió)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "testimonial-received",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-response",
+      "name": "Webhook: testimonial-received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 600],
+      "webhookId": "testimonial-received"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { tenant_id, score, testimonial, name, company, industry, agent_name, loom_url } = $json.body;\nconst isPositive = parseInt(score) >= 8;\nconst isNeutral = parseInt(score) >= 6 && parseInt(score) < 8;\n\nreturn [{ json: { tenant_id, score: parseInt(score), testimonial, name, company, industry, agent_name, loom_url: loom_url || '', isPositive, isNeutral, type: isPositive ? 'positive' : (isNeutral ? 'neutral' : 'negative') } }];"
+      },
+      "id": "evaluate-response",
+      "name": "Evaluar Respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Testimoniales", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Score": "={{ $json.score }}",
+            "Testimonio": "={{ $json.testimonial }}",
+            "Loom_URL": "={{ $json.loom_url }}",
+            "Status": "recibido"
+          }
+        },
+        "where": {
+          "values": [{ "column": "Tenant_ID", "value": "={{ $json.tenant_id }}" }]
+        },
+        "options": {}
+      },
+      "id": "update-sheets",
+      "name": "Sheets: Actualizar con Respuesta",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [700, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.isPositive }}", "value2": true }]
+        }
+      },
+      "id": "check-positive",
+      "name": "¿Score >= 8?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email || $env.ADMIN_EMAIL }}",
+        "subject": "=🌟 ¡Gracias por tu testimonio, {{ $json.name }}!",
+        "message": "=Hola {{ $json.name }},\n\n¡Gracias! Tu feedback es muy valioso para nosotros.\n\nNos alegra saber que tu agente está funcionando bien. Como agradecimiento, te agregamos 1 mes gratis a tu plan.\n\n¿Podemos usar tu testimonio en nuestra web y redes sociales? Si estás de acuerdo, respondé este email con \"Sí, autorizo\" y listo.\n\nSi ya grabaste un Loom contando tu experiencia, mandanos el link y recibís el bonus. 🎁\n\n¡Gracias por confiar en TuAgenteStore!\n— Equipo TuAgenteStore",
+        "options": {}
+      },
+      "id": "email-thank-positive",
+      "name": "Email: Gracias + Solicitar Autorización",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1100, 500]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "=⭐ Testimonio recibido ({{ $json.score }}/10) — {{ $json.name }}, {{ $json.company }}",
+        "message": "=Testimonio recibido:\n\nCliente: {{ $json.name }} — {{ $json.company }}\nIndustria: {{ $json.industry }}\nAgente: {{ $json.agent_name }}\nScore: {{ $json.score }}/10\nTipo: {{ $json.type }}\n\nTestimonio:\n\"{{ $json.testimonial }}\"\n\nLoom: {{ $json.loom_url || 'no enviado' }}\n\nSiguiente paso:\n{{ $json.isPositive ? '✅ Email de agradecimiento enviado + solicitud de autorización' : '📞 Llamar para entender qué mejorar' }}",
+        "options": {}
+      },
+      "id": "alert-admin",
+      "name": "Gmail: Alerta Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1100, 700]
+    }
+  ],
+  "connections": {
+    "Webhook: request-testimonial": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }],
+        [{ "node": "200 OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "200 OK": {
+      "main": [[{ "node": "Email: Solicitud de Feedback", "type": "main", "index": 0 }]]
+    },
+    "Email: Solicitud de Feedback": {
+      "main": [[{ "node": "Sheets: Log Solicitud", "type": "main", "index": 0 }]]
+    },
+    "Sheets: Log Solicitud": {
+      "main": [[{ "node": "Esperar 3 días", "type": "main", "index": 0 }]]
+    },
+    "Esperar 3 días": {
+      "main": [[{ "node": "Email: Follow-up (si no respondió)", "type": "main", "index": 0 }]]
+    },
+    "Webhook: testimonial-received": {
+      "main": [[{ "node": "Evaluar Respuesta", "type": "main", "index": 0 }]]
+    },
+    "Evaluar Respuesta": {
+      "main": [[{ "node": "Sheets: Actualizar con Respuesta", "type": "main", "index": 0 }]]
+    },
+    "Sheets: Actualizar con Respuesta": {
+      "main": [[{ "node": "¿Score >= 8?", "type": "main", "index": 0 }]]
+    },
+    "¿Score >= 8?": {
+      "main": [
+        [
+          { "node": "Email: Gracias + Solicitar Autorización", "type": "main", "index": 0 },
+          { "node": "Gmail: Alerta Admin", "type": "main", "index": 0 }
+        ],
+        [{ "node": "Gmail: Alerta Admin", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": ["testimonial", "feedback", "casos"],
+  "notes": "Dos webhooks: POST /webhook/request-testimonial (triggerado desde la app X días post-implementación) y POST /webhook/testimonial-received (desde el form de feedback en tuagentestore.com/feedback). Guarda todo en sheet Testimoniales."
+}
