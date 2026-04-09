@@ -1,0 +1,76 @@
+# ============================================================
+# TUAGENTESTORE — Caddyfile
+# Caddy maneja SSL automático (Let's Encrypt) + reverse proxy
+# DOMAIN=tuagentestore.com  |  N8N_SUBDOMAIN=n8n
+# ============================================================
+
+# ── APP Principal (Next.js) ──
+{$DOMAIN} {
+    reverse_proxy app:3000
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        -Server
+    }
+
+    # Gzip
+    encode gzip
+
+    # Rate limiting para API routes
+    @api path /api/*
+    handle @api {
+        reverse_proxy app:3000
+    }
+
+    # Webhooks entrantes (n8n)
+    @webhooks path /webhooks/*
+    handle @webhooks {
+        reverse_proxy n8n:5678
+    }
+
+    # Logs
+    log {
+        output file /data/logs/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
+
+# ── WWW redirect ──
+www.{$DOMAIN} {
+    redir https://{$DOMAIN}{uri} permanent
+}
+
+# ── N8N (subdominio — acceso restringido) ──
+# Responde en n8n.tuagentestore.com Y en el hostname de Hostinger
+{$N8N_SUBDOMAIN}.{$DOMAIN}, n8n.srv1565607.hstgr.cloud {
+    reverse_proxy n8n:5678
+
+    # CRÍTICO: Restringir acceso al editor de n8n
+    # Opción 1: Allowlist de IPs (recomendado)
+    # @blocked not remote_ip {$ALLOWED_IPS}
+    # respond @blocked 403
+
+    # Opción 2: Basic auth (configurado en n8n)
+    # Ya está configurado vía N8N_BASIC_AUTH en docker-compose
+
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Strict-Transport-Security "max-age=31536000"
+        -Server
+    }
+
+    log {
+        output file /data/logs/n8n-access.log {
+            roll_size 10mb
+            roll_keep 3
+        }
+    }
+}

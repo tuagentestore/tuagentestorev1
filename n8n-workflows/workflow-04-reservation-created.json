@@ -1,0 +1,230 @@
+{
+  "name": "04 — Reservation Created → Email Confirmación + Calendar + Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reservation-created",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: reservation-created",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "reservation-created"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "unauthorized-response",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "Reserva confirmada — {{ $json.body.agent_name || $json.body.agent_slug }} · TuAgente Store",
+        "message": "Hola {{ $json.body.user_name }},\n\n¡Tu reserva fue confirmada!\n\n**Resumen:**\n- Agente: {{ $json.body.agent_name || $json.body.agent_slug }}\n- Plan: {{ $json.body.plan_interest || 'starter' }}\n- Empresa: {{ $json.body.company || '—' }}\n{{ $json.body.preferred_date ? '- Fecha preferida: ' + $json.body.preferred_date : '' }}\n\n**¿Qué sigue?**\nNuestro equipo te contactará en **menos de 24 horas hábiles** para:\n1. Revisar tu caso de uso\n2. Coordinar la configuración\n3. Enviarte el link de activación\n\n**¿Preguntas?**\nRespondé este email o escribinos a hola@tuagentestore.com\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "confirmation-email",
+      "name": "Email: Confirmación al Lead",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [700, 250],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "📋 Nueva reserva: {{ $json.body.user_name }} — {{ $json.body.plan_interest }} — {{ $json.body.agent_slug }}",
+        "message": "Nueva reserva recibida:\n\n**Lead:**\n- Nombre: {{ $json.body.user_name }}\n- Email: {{ $json.body.user_email }}\n- Teléfono: {{ $json.body.phone }}\n- Empresa: {{ $json.body.company || '—' }}\n- Industria: {{ $json.body.industry || '—' }}\n\n**Solicitud:**\n- Agente: {{ $json.body.agent_slug }}\n- Plan: {{ $json.body.plan_interest }}\n- Fecha preferida: {{ $json.body.preferred_date || 'No especificó' }}\n- Caso de uso: {{ $json.body.use_case || '—' }}\n\n**ID:** {{ $json.body.reservation_id }}\n\n👉 Ver en admin: https://tuagentestore.com/admin",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store Ops"
+        }
+      },
+      "id": "admin-alert",
+      "name": "Email: Alerta Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [700, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Reservations Pipeline",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date($json.body.created_at || Date.now()).toLocaleString('es-AR') }}",
+            "Reservation ID": "={{ $json.body.reservation_id }}",
+            "Name": "={{ $json.body.user_name }}",
+            "Email": "={{ $json.body.user_email }}",
+            "Phone": "={{ $json.body.phone }}",
+            "Company": "={{ $json.body.company }}",
+            "Industry": "={{ $json.body.industry }}",
+            "Agent": "={{ $json.body.agent_slug }}",
+            "Plan": "={{ $json.body.plan_interest }}",
+            "Preferred Date": "={{ $json.body.preferred_date }}",
+            "Use Case": "={{ $json.body.use_case }}",
+            "Status": "new",
+            "Notes": ""
+          }
+        },
+        "options": {}
+      },
+      "id": "log-to-pipeline",
+      "name": "Log en Reservations Pipeline",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1000, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-oauth2",
+          "name": "Google OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.preferred_date }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-date",
+      "name": "¿Tiene fecha preferida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 150]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "value": "={{ $env.GOOGLE_CALENDAR_ID }}",
+          "mode": "id"
+        },
+        "start": "={{ $json.body.preferred_date + 'T10:00:00' }}",
+        "end": "={{ $json.body.preferred_date + 'T10:30:00' }}",
+        "additionalFields": {
+          "summary": "Demo/Activación: {{ $json.body.user_name }} ({{ $json.body.company || '—' }}) — {{ $json.body.agent_slug }}",
+          "description": "Lead: {{ $json.body.user_name }}\nEmail: {{ $json.body.user_email }}\nTel: {{ $json.body.phone }}\nPlan: {{ $json.body.plan_interest }}\nAgente: {{ $json.body.agent_slug }}\n\nCaso de uso:\n{{ $json.body.use_case || '—' }}",
+          "attendees": [
+            {
+              "email": "={{ $json.body.user_email }}"
+            }
+          ],
+          "location": "Google Meet / Video Call"
+        }
+      },
+      "id": "create-calendar-event",
+      "name": "Crear evento en Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [1200, 100],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "google-oauth2",
+          "name": "Google OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: reservation-created": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [
+          { "node": "200 OK", "type": "main", "index": 0 },
+          { "node": "Email: Confirmación al Lead", "type": "main", "index": 0 },
+          { "node": "Email: Alerta Admin", "type": "main", "index": 0 }
+        ],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email: Confirmación al Lead": {
+      "main": [[
+        { "node": "Log en Reservations Pipeline", "type": "main", "index": 0 },
+        { "node": "¿Tiene fecha preferida?", "type": "main", "index": 0 }
+      ]]
+    },
+    "¿Tiene fecha preferida?": {
+      "main": [
+        [{ "node": "Crear evento en Calendar", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "reservations" }, { "name": "fase-2" }],
+  "triggerCount": 1,
+  "active": false
+}

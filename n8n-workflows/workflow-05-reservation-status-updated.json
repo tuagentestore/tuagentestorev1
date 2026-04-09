@@ -1,0 +1,201 @@
+{
+  "name": "05 — Reservation Status Updated → Email según estado",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reservation-updated",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: reservation-updated",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "reservation-updated"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "value2": "contacted",
+              "outputKey": "contacted"
+            },
+            {
+              "value2": "qualified",
+              "outputKey": "qualified"
+            },
+            {
+              "value2": "validated",
+              "outputKey": "validated"
+            },
+            {
+              "value2": "paid",
+              "outputKey": "paid"
+            },
+            {
+              "value2": "cancelled",
+              "outputKey": "cancelled"
+            }
+          ]
+        },
+        "dataPropertyName": "={{ $json.body.new_status }}"
+      },
+      "id": "route-by-status",
+      "name": "Rutear por estado",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "Estamos en contacto — TuAgente Store",
+        "message": "Hola {{ $json.body.user_name }},\n\nNuestro equipo ya revisó tu solicitud para **{{ $json.body.agent_name }}** y te contactaremos muy pronto.\n\nSi necesitás algo antes, respondé este email.\n\nSaludos,\nEquipo TuAgente Store",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "email-contacted",
+      "name": "Email: Contactado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 150],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "¡Tu perfil fue calificado! Siguiente paso — TuAgente Store",
+        "message": "Hola {{ $json.body.user_name }},\n\nExcelentes noticias: tu solicitud para **{{ $json.body.agent_name }}** fue calificada y tiene muy buen fit con nuestro producto.\n\nEn las próximas horas te enviaremos los detalles del plan y el link para proceder.\n\nSaludos,\nEquipo TuAgente Store",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "email-qualified",
+      "name": "Email: Calificado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 280],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "Tu agente está listo — Link de activación 🚀",
+        "message": "Hola {{ $json.body.user_name }},\n\n¡Tus datos fueron validados! **{{ $json.body.agent_name }}** está listo para ser activado.\n\n**Para proceder:**\n👉 [Completar pago y activar →]({{ $json.body.payment_link || 'https://tuagentestore.com' }})\n\n**Plan:** {{ $json.body.plan_interest }}\n**Precio:** desde $397/mes\n\nEste link es válido por 48 horas. Si tenés dudas, respondé este email.\n\nSaludos,\nEquipo TuAgente Store",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "email-validated",
+      "name": "Email: Link de Pago",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "¡Pago confirmado! Bienvenido a TuAgente Store 🎉",
+        "message": "Hola {{ $json.body.user_name }},\n\n¡Tu pago fue procesado exitosamente! **{{ $json.body.agent_name }}** está siendo configurado para tu empresa.\n\n**Próximos pasos:**\n1. Te enviaremos el formulario de onboarding en la próxima hora\n2. Nuestro equipo configura el agente en 24h\n3. Coordinamos una llamada de lanzamiento\n\nBienvenido a la familia TuAgente Store.\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com/dashboard",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "email-paid",
+      "name": "Email: Pago Confirmado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 520],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: reservation-updated": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [
+          { "node": "200 OK", "type": "main", "index": 0 },
+          { "node": "Rutear por estado", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    },
+    "Rutear por estado": {
+      "main": [
+        [{ "node": "Email: Contactado", "type": "main", "index": 0 }],
+        [{ "node": "Email: Calificado", "type": "main", "index": 0 }],
+        [{ "node": "Email: Link de Pago", "type": "main", "index": 0 }],
+        [{ "node": "Email: Pago Confirmado", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "reservations" }, { "name": "pipeline" }, { "name": "fase-2" }],
+  "triggerCount": 1,
+  "active": false
+}

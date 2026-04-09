@@ -1,0 +1,176 @@
+{
+  "name": "01 — Lead Created → Sheets + Email Bienvenida",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-created",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: lead-created",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "lead-created"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({error: 'Unauthorized'}) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "unauthorized-response",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Leads Master",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date($json.body.created_at || Date.now()).toLocaleString('es-AR') }}",
+            "Name": "={{ $json.body.user_name }}",
+            "Email": "={{ $json.body.user_email }}",
+            "Phone": "={{ $json.body.phone }}",
+            "Company": "={{ $json.body.company }}",
+            "Industry": "={{ $json.body.industry }}",
+            "Agent": "={{ $json.body.agent_slug }}",
+            "Plan": "={{ $json.body.plan_interest }}",
+            "Use Case": "={{ $json.body.use_case }}",
+            "Status": "new",
+            "Source": "={{ $json.body.utm_source || 'organic' }}",
+            "Reservation ID": "={{ $json.body.reservation_id }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "append-to-sheets",
+      "name": "Append to Leads Master",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-oauth2",
+          "name": "Google OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "¡Tu solicitud fue recibida! — TuAgente Store",
+        "message": "Hola {{ $json.body.user_name }},\n\nRecibimos tu solicitud para el agente **{{ $json.body.agent_name || $json.body.agent_slug }}**.\n\nNuestro equipo te contactará en **menos de 24 horas hábiles** para coordinar los próximos pasos.\n\n**Tu solicitud:**\n- Plan: {{ $json.body.plan_interest || 'starter' }}\n- Empresa: {{ $json.body.company || '—' }}\n- Industria: {{ $json.body.industry || '—' }}\n\nSi tenés alguna pregunta, respondé este email o escribinos a hola@tuagentestore.com.\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "send-welcome-email",
+      "name": "Email: Bienvenida al Lead",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 100],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "🔔 Nuevo lead: {{ $json.body.user_name }} ({{ $json.body.plan_interest }})",
+        "message": "Nuevo lead recibido:\n\n**Nombre:** {{ $json.body.user_name }}\n**Email:** {{ $json.body.user_email }}\n**Teléfono:** {{ $json.body.phone }}\n**Empresa:** {{ $json.body.company || '—' }}\n**Industria:** {{ $json.body.industry || '—' }}\n**Agente:** {{ $json.body.agent_slug }}\n**Plan:** {{ $json.body.plan_interest }}\n**Caso de uso:** {{ $json.body.use_case || '—' }}\n**ID Reserva:** {{ $json.body.reservation_id }}\n\nVer en admin: https://tuagentestore.com/admin",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store Ops"
+        }
+      },
+      "id": "notify-admin",
+      "name": "Email: Alerta Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [900, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1150, 200]
+    }
+  ],
+  "connections": {
+    "Webhook: lead-created": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [{ "node": "Append to Leads Master", "type": "main", "index": 0 }],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "Append to Leads Master": {
+      "main": [[
+        { "node": "Email: Bienvenida al Lead", "type": "main", "index": 0 },
+        { "node": "Email: Alerta Admin", "type": "main", "index": 0 }
+      ]]
+    },
+    "Email: Bienvenida al Lead": {
+      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "leads" }, { "name": "fase-2" }],
+  "triggerCount": 1,
+  "active": false
+}

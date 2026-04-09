@@ -1,0 +1,183 @@
+# ============================================================
+# AI AGENT HUB — Docker Compose (Hostinger VPS)
+# Stack: Next.js + PostgreSQL + n8n + Redis + Caddy
+# VPS Recomendado: KVM 4 (4 vCPU / 16GB RAM)
+# ============================================================
+
+version: "3.9"
+
+services:
+  # ──────────────────────────────────────────────
+  # 1. CADDY (Reverse Proxy + SSL automático)
+  # ──────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - app
+      - n8n
+
+  # ──────────────────────────────────────────────
+  # 2. NEXT.JS APP (Frontend + API Routes)
+  # ──────────────────────────────────────────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - web
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────
+  # 3. POSTGRESQL 16
+  # ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tuagentestore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-tuagentestore}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/backup:/backups
+      - ./database/seeds:/backups/seeds
+    ports:
+      - "127.0.0.1:5432:5432"  # Solo accesible desde localhost
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tuagentestore}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ──────────────────────────────────────────────
+  # 4. REDIS (Cache + Queue + Sessions)
+  # ──────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # 5. N8N (Automatización)
+  # ──────────────────────────────────────────────
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_SUBDOMAIN}.${DOMAIN}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_SUBDOMAIN}.${DOMAIN}/
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_AUTH_PASSWORD}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-tuagentestore}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-tuagentestore}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=false
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+      - GENERIC_TIMEZONE=America/Argentina/Buenos_Aires
+      - N8N_METRICS=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - web
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────
+  # 6. BACKUP AUTOMÁTICO (Postgres)
+  # ──────────────────────────────────────────────
+  pg-backup:
+    image: prodrigestivill/postgres-backup-local:16
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=${POSTGRES_DB:-tuagentestore}
+      - POSTGRES_USER=${POSTGRES_USER:-tuagentestore}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=8080
+    volumes:
+      - ./database/backup:/backups
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# ──────────────────────────────────────────────
+# NETWORKS
+# ──────────────────────────────────────────────
+networks:
+  web:
+    driver: bridge
+  internal:
+    driver: bridge
+    internal: true  # Sin acceso a internet
+
+# ──────────────────────────────────────────────
+# VOLUMES
+# ──────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,121 @@
+{
+  "name": "02 — Demo Started → Log en Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "demo-started",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: demo-started",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "demo-started"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "unauthorized-response",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Demo Sessions",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toLocaleString('es-AR') }}",
+            "Session ID": "={{ $json.body.session_id }}",
+            "Agent": "={{ $json.body.agent_slug }}",
+            "Agent Name": "={{ $json.body.agent_name }}",
+            "User Email": "={{ $json.body.user_email || 'anonymous' }}",
+            "IP": "={{ $json.body.ip_address }}",
+            "Status": "started",
+            "Messages": "0",
+            "Completed": "false"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-to-sheets",
+      "name": "Log Demo en Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-oauth2",
+          "name": "Google OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 200]
+    }
+  ],
+  "connections": {
+    "Webhook: demo-started": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [{ "node": "Log Demo en Sheets", "type": "main", "index": 0 }],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log Demo en Sheets": {
+      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "demos" }, { "name": "fase-2" }],
+  "triggerCount": 1,
+  "active": false
+}

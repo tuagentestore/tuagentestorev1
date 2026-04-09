@@ -1,0 +1,49 @@
+# ─── Secrets / Entorno ───
+.env
+.env.local
+.env.production
+.env*.local
+*.pem
+*.key
+
+# ─── Node ───
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Next.js ───
+app/.next/
+app/out/
+app/.turbo/
+app/build/
+
+# ─── Docker volumes (si se usan localmente) ───
+pgdata/
+redisdata/
+caddy_data/
+caddy_config/
+n8n_data/
+
+# ─── Backups ───
+*.dump
+*.backup
+backups/
+
+# ─── OS / IDE ───
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# ─── Logs ───
+logs/
+*.log
+access.log
+
+# ─── Temporales ───
+*.tmp
+*.temp
+dist/

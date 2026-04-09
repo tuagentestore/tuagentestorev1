@@ -1,0 +1,180 @@
+{
+  "name": "03 — Demo Completed → Follow-up 2h + 24h",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "demo-completed",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: demo-completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "demo-completed"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-secret",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "unauthorized-response",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK (inmediato)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.user_email }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-email",
+      "name": "¿Tiene email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "id": "wait-2h",
+      "name": "Esperar 2 horas",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [900, 250]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "¿Cómo estuvo tu demo con {{ $json.body.agent_name }}?",
+        "message": "Hola{{ $json.body.user_name ? ' ' + $json.body.user_name : '' }},\n\nEsperamos que la demo de **{{ $json.body.agent_name }}** haya sido útil.\n\n¿Tenés preguntas sobre cómo implementarlo en tu negocio? Estamos listos para ayudarte.\n\n👉 **[Reservar activación →](https://tuagentestore.com/agents/{{ $json.body.agent_slug }})**\n\nO respondé este email y te contactamos hoy.\n\nSaludos,\nEquipo TuAgente Store",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "followup-2h",
+      "name": "Email: Follow-up 2h",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1100, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 22,
+        "unit": "hours"
+      },
+      "id": "wait-22h",
+      "name": "Esperar 22h más (total 24h)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1300, 200]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.user_email }}",
+        "subject": "Última oportunidad: activá {{ $json.body.agent_name }} esta semana",
+        "message": "Hola{{ $json.body.user_name ? ' ' + $json.body.user_name : '' }},\n\nAyer probaste **{{ $json.body.agent_name }}** y vimos que llegaste al límite de la demo.\n\nTus competidores ya están usando agentes IA para automatizar ventas y soporte. **No te quedes atrás.**\n\n✅ Setup en 24 horas\n✅ Sin contrato de permanencia\n✅ Soporte en español\n\n👉 **[Reservar activación ahora →](https://tuagentestore.com/agents/{{ $json.body.agent_slug }})**\n\nPrecio: desde $397/mes · Sin cargo por reservar.\n\nSaludos,\nEquipo TuAgente Store",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgente Store"
+        }
+      },
+      "id": "followup-24h",
+      "name": "Email: Follow-up 24h",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1500, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: demo-completed": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [
+          { "node": "200 OK (inmediato)", "type": "main", "index": 0 },
+          { "node": "¿Tiene email?", "type": "main", "index": 0 }
+        ],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "¿Tiene email?": {
+      "main": [
+        [{ "node": "Esperar 2 horas", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Esperar 2 horas": {
+      "main": [[{ "node": "Email: Follow-up 2h", "type": "main", "index": 0 }]]
+    },
+    "Email: Follow-up 2h": {
+      "main": [[{ "node": "Esperar 22h más (total 24h)", "type": "main", "index": 0 }]]
+    },
+    "Esperar 22h más (total 24h)": {
+      "main": [[{ "node": "Email: Follow-up 24h", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "demos" }, { "name": "followup" }, { "name": "fase-2" }],
+  "triggerCount": 1,
+  "active": false
+}
