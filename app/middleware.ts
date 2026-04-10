@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { verifyAccessToken } from './lib/auth'
+import { verifyAccessTokenEdge } from './lib/auth-edge'
 
 const PROTECTED_PREFIXES = ['/dashboard', '/onboarding', '/api/auth/me', '/api/auth/logout', '/api/auth/refresh']
 const ADMIN_PREFIXES = ['/admin', '/api/admin']
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
   const isAdmin = ADMIN_PREFIXES.some((p) => pathname.startsWith(p))
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const payload = verifyAccessToken(token)
+  const payload = await verifyAccessTokenEdge(token)
   if (!payload) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
