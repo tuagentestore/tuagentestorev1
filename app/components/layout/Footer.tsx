@@ -7,19 +7,21 @@ export default function Footer() {
   const links = {
     producto: [
       { name: 'Catálogo de Agentes', href: '/agents' },
-      { name: 'Cómo Funciona', href: '/#como-funciona' },
-      { name: 'Precios', href: '/#precios' },
+      { name: 'Encontrá tu agente', href: '/wizard' },
+      { name: 'Precios', href: '/pricing' },
+      { name: 'Casos de Implementación', href: '/casos' },
     ],
     empresa: [
-      { name: 'Sobre Nosotros', href: '/#nosotros' },
-      { name: 'Blog', href: '/blog' },
-      { name: 'Casos de Uso', href: '/#casos' },
+      { name: 'Para Inmobiliarias', href: '/para/inmobiliarias' },
+      { name: 'Para Clínicas', href: '/para/clinicas' },
+      { name: 'Para Concesionarias', href: '/para/concesionarias' },
+      { name: 'Para Agencias', href: '/para/agencias' },
     ],
     soporte: [
-      { name: 'Contacto', href: 'mailto:hola@tuagentestore.com' },
       { name: 'Documentación', href: '/docs' },
+      { name: 'Centro de soporte', href: '/soporte' },
+      { name: 'Contacto', href: '/contact' },
       { name: 'Términos de uso', href: '/terms' },
-      { name: 'Privacidad', href: '/privacy' },
     ],
   }
 

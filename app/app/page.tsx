@@ -3,6 +3,8 @@ import HowItWorks from '@/components/home/HowItWorks'
 import FeaturedAgents from '@/components/home/FeaturedAgents'
 import Benefits from '@/components/home/Benefits'
 import SocialProof from '@/components/home/SocialProof'
+import CasosPreview from '@/components/home/CasosPreview'
+import WizardCTA from '@/components/home/WizardCTA'
 import CTASection from '@/components/home/CTASection'
 
 export default function HomePage() {
@@ -12,6 +14,8 @@ export default function HomePage() {
       <HowItWorks />
       <FeaturedAgents />
       <Benefits />
+      <CasosPreview />
+      <WizardCTA />
       <SocialProof />
       <CTASection />
     </>

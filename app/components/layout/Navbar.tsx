@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bot, LayoutGrid, User, Shield, Menu, X, Zap } from 'lucide-react'
+import { Bot, LayoutGrid, User, Shield, Menu, X, Zap, Sparkles, Building2 } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 
 interface NavUser {
   name?: string
@@ -38,6 +39,8 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Inicio', href: '/', icon: LayoutGrid },
     { name: 'Catálogo', href: '/agents', icon: Bot },
+    { name: 'Casos', href: '/casos', icon: Building2 },
+    { name: 'Wizard IA', href: '/wizard', icon: Sparkles },
     ...(user ? [{ name: 'Mis Agentes', href: '/dashboard', icon: User }] : []),
   ]
 
@@ -100,6 +103,7 @@ export default function Navbar() {
 
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
+            {user && <NotificationBell />}
             {user ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground truncate max-w-32">
@@ -121,10 +125,10 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              href="/agents"
+              href="/wizard"
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:shadow-glow transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              Explorar Agentes
+              Encontrá tu Agente
             </Link>
           </div>
 
