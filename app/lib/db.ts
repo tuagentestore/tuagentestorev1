@@ -44,7 +44,7 @@ export async function transaction<T>(
   const client = await getPool().connect()
   try {
     await client.query('BEGIN')
-    const boundQuery = async <R = Record<string, unknown>>(
+    const boundQuery = async <R extends QueryResultRow = Record<string, unknown>>(
       text: string,
       params?: unknown[]
     ): Promise<R[]> => {
