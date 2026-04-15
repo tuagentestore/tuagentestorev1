@@ -16,6 +16,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cd /home/deploy/tuagentestore
+            cd /root/tuagentestore
             git pull origin main
             bash deploy.sh

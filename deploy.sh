@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-PROJECT_DIR="/home/deploy/tuagentestore"
+PROJECT_DIR="/root/tuagentestore"
 cd $PROJECT_DIR
 
 echo "TuAgente Store — Deploy"
