@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Star, Quote } from 'lucide-react'
 
 const TESTIMONIALS = [
@@ -30,9 +31,19 @@ const TESTIMONIALS = [
   },
 ]
 
-const LOGOS = [
-  'Google Workspace', 'WhatsApp Business', 'HubSpot',
-  'Stripe', 'Calendly', 'Notion', 'Shopify', 'OpenAI',
+const BRAND_LOGOS = [
+  { name: 'Google Workspace', src: '/brands/google-workspace.png' },
+  { name: 'WhatsApp Business', src: '/brands/whatsapp.png' },
+  { name: 'HubSpot',           src: '/brands/hubspot.png' },
+  { name: 'Calendly',          src: '/brands/calendly.png' },
+  { name: 'OpenAI',            src: '/brands/openai.png' },
+  { name: 'Zapier',            src: '/brands/zapier.png' },
+  { name: 'Shopify',           src: '/brands/shopify.png' },
+  { name: 'Meta',              src: '/brands/meta.png' },
+  { name: 'n8n',               src: '/brands/n8n.png' },
+  { name: 'Mercado Libre',     src: '/brands/mercadolibre.png' },
+  { name: 'Slack',             src: '/brands/slack.png' },
+  { name: 'Zendesk',           src: '/brands/zendesk.png' },
 ]
 
 export default function SocialProof() {
@@ -85,20 +96,29 @@ export default function SocialProof() {
           ))}
         </div>
 
-        {/* Integration logos */}
+        {/* Integration brand logos — infinite scroll carousel */}
         <div className="text-center">
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-8">
             Se integra con las herramientas que ya usás
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {LOGOS.map((logo) => (
-              <span
-                key={logo}
-                className="px-4 py-2 bg-card border border-border rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
-              >
-                {logo}
-              </span>
-            ))}
+          <div className="relative overflow-hidden w-full" style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}>
+            <div className="flex animate-marquee" style={{ width: 'max-content' }}>
+              {[...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, i) => (
+                <div
+                  key={`${brand.name}-${i}`}
+                  className="bg-white rounded-xl px-4 py-3 border border-border/30 shadow-sm flex items-center justify-center mx-3 shrink-0"
+                  style={{ width: 110, height: 52 }}
+                >
+                  <Image
+                    src={brand.src}
+                    alt={brand.name}
+                    width={90}
+                    height={32}
+                    className="object-contain max-h-8 w-auto"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

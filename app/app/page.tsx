@@ -5,6 +5,7 @@ import Benefits from '@/components/home/Benefits'
 import SocialProof from '@/components/home/SocialProof'
 import CasosPreview from '@/components/home/CasosPreview'
 import WizardCTA from '@/components/home/WizardCTA'
+import AgendaSection from '@/components/home/AgendaSection'
 import CTASection from '@/components/home/CTASection'
 
 export default function HomePage() {
@@ -17,6 +18,7 @@ export default function HomePage() {
       <CasosPreview />
       <WizardCTA />
       <SocialProof />
+      <AgendaSection />
       <CTASection />
     </>
   )

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Zap, Instagram, Youtube, Linkedin, Twitter } from 'lucide-react'
+import Image from 'next/image'
+import { Instagram, Youtube, Linkedin, Twitter } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -26,8 +27,8 @@ export default function Footer() {
   }
 
   const socials = [
-    { icon: Instagram, href: 'https://instagram.com/tuagentestore', label: 'Instagram' },
-    { icon: Linkedin, href: 'https://linkedin.com/company/tuagentestore', label: 'LinkedIn' },
+    { icon: Instagram, href: 'https://www.instagram.com/ai.tuagentestore', label: 'Instagram' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/in/tu-agente-store-4704673b8', label: 'LinkedIn' },
     { icon: Twitter, href: 'https://x.com/tuagentestore', label: 'X' },
     { icon: Youtube, href: 'https://youtube.com/@tuagentestore', label: 'YouTube' },
   ]
@@ -39,14 +40,21 @@ export default function Footer() {
 
           {/* Brand col */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-custom">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-lg font-bold">
-                <span className="text-primary">TuAgente</span>
-                <span className="text-muted-foreground font-medium"> Store</span>
-              </span>
+            <Link href="/" className="flex items-center mb-4 w-fit group">
+              <Image
+                src="/logo.png"
+                alt="TuAgente Store"
+                width={36}
+                height={36}
+                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 dark:hidden"
+              />
+              <Image
+                src="/logo-dark.png"
+                alt="TuAgente Store"
+                width={36}
+                height={36}
+                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 hidden dark:block"
+              />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
               El marketplace de agentes IA listos para automatizar tu negocio.
@@ -97,8 +105,8 @@ export default function Footer() {
           </p>
           <p className="text-sm text-muted-foreground">
             <span className="text-primary">●</span>{' '}
-            <a href="mailto:hola@tuagentestore.com" className="hover:text-primary transition-colors">
-              hola@tuagentestore.com
+            <a href="mailto:info@tuagentestore.com" className="hover:text-primary transition-colors">
+              info@tuagentestore.com
             </a>
           </p>
         </div>

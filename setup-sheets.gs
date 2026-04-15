@@ -140,42 +140,47 @@ function setupLeadsMaster(ss) {
   const sheet = ss.getSheetByName('Leads Master') || ss.insertSheet('Leads Master')
   sheet.clearContents()
 
+  // Columnas alineadas con lib/sheets.ts → logLeadToSheets()
+  // [now, id, name, email, phone, company, industry, agentName, source, planInterest, 'new']
   const headers = [
-    'Fecha', 'Nombre', 'Email', 'Teléfono', 'Empresa',
-    'Industria', 'Agente', 'Plan', 'Caso de Uso',
-    'Estado', 'Fuente', 'Reserva ID', 'Notas'
+    'Fecha', 'Lead ID', 'Nombre', 'Email', 'Teléfono',
+    'Empresa', 'Industria', 'Agente', 'Fuente', 'Plan', 'Estado'
   ]
 
   formatSheet(sheet, headers, CONFIG.colors.accent)
 
-  // Validación de Estado (dropdown)
-  const statusRange = sheet.getRange('J2:J1000')
+  // Validación de Estado → col K (11)
+  const statusRange = sheet.getRange('K2:K1000')
   const statusRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(['new', 'contacted', 'qualified', 'validated', 'paid', 'cancelled', 'no_show'], true)
     .build()
   statusRange.setDataValidation(statusRule)
 
-  // Validación de Plan
-  const planRange = sheet.getRange('H2:H1000')
+  // Validación de Plan → col J (10)
+  const planRange = sheet.getRange('J2:J1000')
   const planRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(['starter', 'pro', 'enterprise'], true)
     .build()
   planRange.setDataValidation(planRule)
 
+  // Formato condicional por estado
+  addConditionalFormat(sheet, 'K2:K1000', 'paid', CONFIG.colors.success)
+  addConditionalFormat(sheet, 'K2:K1000', 'cancelled', CONFIG.colors.danger)
+  addConditionalFormat(sheet, 'K2:K1000', 'validated', '#ddd6fe')
+  addConditionalFormat(sheet, 'K2:K1000', 'qualified', '#e0e7ff')
+
   // Anchos de columna
   sheet.setColumnWidth(1, 140)  // Fecha
-  sheet.setColumnWidth(2, 160)  // Nombre
-  sheet.setColumnWidth(3, 200)  // Email
-  sheet.setColumnWidth(4, 130)  // Teléfono
-  sheet.setColumnWidth(5, 150)  // Empresa
-  sheet.setColumnWidth(6, 120)  // Industria
-  sheet.setColumnWidth(7, 160)  // Agente
-  sheet.setColumnWidth(8, 100)  // Plan
-  sheet.setColumnWidth(9, 280)  // Caso de Uso
-  sheet.setColumnWidth(10, 110) // Estado
-  sheet.setColumnWidth(11, 100) // Fuente
-  sheet.setColumnWidth(12, 200) // Reserva ID
-  sheet.setColumnWidth(13, 250) // Notas
+  sheet.setColumnWidth(2, 260)  // Lead ID
+  sheet.setColumnWidth(3, 160)  // Nombre
+  sheet.setColumnWidth(4, 200)  // Email
+  sheet.setColumnWidth(5, 130)  // Teléfono
+  sheet.setColumnWidth(6, 150)  // Empresa
+  sheet.setColumnWidth(7, 120)  // Industria
+  sheet.setColumnWidth(8, 160)  // Agente
+  sheet.setColumnWidth(9, 110)  // Fuente
+  sheet.setColumnWidth(10, 100) // Plan
+  sheet.setColumnWidth(11, 110) // Estado
 
   Logger.log('✅ Leads Master lista')
 }
@@ -189,31 +194,32 @@ function setupDemoSessions(ss) {
   const sheet = ss.getSheetByName('Demo Sessions') || ss.insertSheet('Demo Sessions')
   sheet.clearContents()
 
+  // Columnas alineadas con lib/sheets.ts → logDemoToSheets()
+  // [now, sessionId, agentName, userEmail, ip, messagesUsed, 'completed'|'started']
   const headers = [
-    'Fecha', 'Session ID', 'Agente', 'Nombre Agente',
-    'Email Usuario', 'IP', 'Mensajes', 'Completada',
-    'Derivó a Reserva', 'Status'
+    'Fecha', 'Session ID', 'Agente', 'Email Usuario',
+    'IP', 'Mensajes', 'Status'
   ]
 
   formatSheet(sheet, headers, CONFIG.colors.accent2)
 
-  // Dropdown Completada
-  const completedRange = sheet.getRange('H2:H1000')
-  const completedRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['true', 'false'], true)
+  // Dropdown Status → col G (7)
+  const statusRange = sheet.getRange('G2:G1000')
+  const statusRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['started', 'completed'], true)
     .build()
-  completedRange.setDataValidation(completedRule)
+  statusRange.setDataValidation(statusRule)
 
-  sheet.setColumnWidth(1, 140)
-  sheet.setColumnWidth(2, 280)
-  sheet.setColumnWidth(3, 180)
-  sheet.setColumnWidth(4, 200)
-  sheet.setColumnWidth(5, 200)
-  sheet.setColumnWidth(6, 130)
-  sheet.setColumnWidth(7, 100)
-  sheet.setColumnWidth(8, 110)
-  sheet.setColumnWidth(9, 140)
-  sheet.setColumnWidth(10, 110)
+  addConditionalFormat(sheet, 'G2:G1000', 'completed', CONFIG.colors.success)
+  addConditionalFormat(sheet, 'G2:G1000', 'started', CONFIG.colors.warning)
+
+  sheet.setColumnWidth(1, 140)  // Fecha
+  sheet.setColumnWidth(2, 280)  // Session ID
+  sheet.setColumnWidth(3, 180)  // Agente
+  sheet.setColumnWidth(4, 200)  // Email Usuario
+  sheet.setColumnWidth(5, 130)  // IP
+  sheet.setColumnWidth(6, 100)  // Mensajes
+  sheet.setColumnWidth(7, 110)  // Status
 
   Logger.log('✅ Demo Sessions lista')
 }
@@ -227,43 +233,38 @@ function setupReservationsPipeline(ss) {
   const sheet = ss.getSheetByName('Reservations Pipeline') || ss.insertSheet('Reservations Pipeline')
   sheet.clearContents()
 
+  // Columnas alineadas con lib/sheets.ts → logReservationToSheets()
+  // [now, id, name, email, phone, company, agentName, planInterest, preferredDate, 'new']
   const headers = [
     'Fecha', 'Reserva ID', 'Nombre', 'Email', 'Teléfono',
-    'Empresa', 'Industria', 'Agente', 'Plan',
-    'Fecha Preferida', 'Caso de Uso', 'Estado', 'Notas', 'Link Pago'
+    'Empresa', 'Agente', 'Plan', 'Fecha Preferida', 'Estado'
   ]
 
   formatSheet(sheet, headers, '#7C3AED')
 
-  // Dropdown Estado
-  const statusRange = sheet.getRange('L2:L1000')
+  // Dropdown Estado → col J (10)
+  const statusRange = sheet.getRange('J2:J1000')
   const statusRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(['new', 'contacted', 'qualified', 'validated', 'paid', 'cancelled', 'no_show'], true)
     .build()
   statusRange.setDataValidation(statusRule)
 
   // Formato condicional por estado
-  const range = sheet.getRange('A2:N1000')
+  addConditionalFormat(sheet, 'J2:J1000', 'paid', CONFIG.colors.success)
+  addConditionalFormat(sheet, 'J2:J1000', 'cancelled', CONFIG.colors.danger)
+  addConditionalFormat(sheet, 'J2:J1000', 'validated', '#ddd6fe')
+  addConditionalFormat(sheet, 'J2:J1000', 'qualified', '#e0e7ff')
 
-  addConditionalFormat(sheet, 'L2:L1000', 'paid', CONFIG.colors.success)
-  addConditionalFormat(sheet, 'L2:L1000', 'cancelled', CONFIG.colors.danger)
-  addConditionalFormat(sheet, 'L2:L1000', 'validated', '#ddd6fe')
-  addConditionalFormat(sheet, 'L2:L1000', 'qualified', '#e0e7ff')
-
-  sheet.setColumnWidth(1, 140)
-  sheet.setColumnWidth(2, 280)
-  sheet.setColumnWidth(3, 160)
-  sheet.setColumnWidth(4, 200)
-  sheet.setColumnWidth(5, 130)
-  sheet.setColumnWidth(6, 150)
-  sheet.setColumnWidth(7, 120)
-  sheet.setColumnWidth(8, 180)
-  sheet.setColumnWidth(9, 100)
-  sheet.setColumnWidth(10, 130)
-  sheet.setColumnWidth(11, 280)
-  sheet.setColumnWidth(12, 110)
-  sheet.setColumnWidth(13, 250)
-  sheet.setColumnWidth(14, 300)
+  sheet.setColumnWidth(1, 140)  // Fecha
+  sheet.setColumnWidth(2, 280)  // Reserva ID
+  sheet.setColumnWidth(3, 160)  // Nombre
+  sheet.setColumnWidth(4, 200)  // Email
+  sheet.setColumnWidth(5, 130)  // Teléfono
+  sheet.setColumnWidth(6, 150)  // Empresa
+  sheet.setColumnWidth(7, 180)  // Agente
+  sheet.setColumnWidth(8, 100)  // Plan
+  sheet.setColumnWidth(9, 130)  // Fecha Preferida
+  sheet.setColumnWidth(10, 110) // Estado
 
   Logger.log('✅ Reservations Pipeline lista')
 }
@@ -400,16 +401,17 @@ function setupKPIDashboard(ss) {
   // Sección: Pipeline
   sheet.getRange('A3').setValue('PIPELINE ACTUAL').setFontWeight('bold').setFontColor('#2563EB')
 
+  // Leads Master: Estado en col K | Demo Sessions: Status en col G | Reservations: Estado en col J
   const kpis = [
     ['Total Leads', "=COUNTA('Leads Master'!A2:A1000)"],
-    ['Contactados', "=COUNTIF('Leads Master'!J2:J1000,\"contacted\")"],
-    ['Calificados', "=COUNTIF('Leads Master'!J2:J1000,\"qualified\")"],
-    ['Validados', "=COUNTIF('Leads Master'!J2:J1000,\"validated\")"],
-    ['Pagados', "=COUNTIF('Leads Master'!J2:J1000,\"paid\")"],
+    ['Contactados', "=COUNTIF('Leads Master'!K2:K1000,\"contacted\")"],
+    ['Calificados', "=COUNTIF('Leads Master'!K2:K1000,\"qualified\")"],
+    ['Validados', "=COUNTIF('Leads Master'!K2:K1000,\"validated\")"],
+    ['Pagados', "=COUNTIF('Leads Master'!K2:K1000,\"paid\")"],
     ['', ''],
     ['Total Demos', "=COUNTA('Demo Sessions'!A2:A1000)"],
-    ['Demos Completadas', "=COUNTIF('Demo Sessions'!H2:H1000,\"true\")"],
-    ['Conv. Demo→Reserva', "=IF(COUNTA('Demo Sessions'!A2:A1000)=0,\"0%\",TEXT(COUNTIF('Reservations Pipeline'!E2:E1000,\"<>\")/ COUNTA('Demo Sessions'!A2:A1000),\"0.0%\"))"],
+    ['Demos Completadas', "=COUNTIF('Demo Sessions'!G2:G1000,\"completed\")"],
+    ['Conv. Demo→Reserva', "=IF(COUNTA('Demo Sessions'!A2:A1000)=0,\"0%\",TEXT(COUNTA('Reservations Pipeline'!A2:A1000)/COUNTA('Demo Sessions'!A2:A1000),\"0.0%\"))"],
   ]
 
   for (let i = 0; i < kpis.length; i++) {

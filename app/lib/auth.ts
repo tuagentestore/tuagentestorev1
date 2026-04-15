@@ -1,7 +1,12 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { createHash, randomBytes } from 'crypto'
-import { getRedis } from './redis'
+import { Redis } from '@upstash/redis'
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL ?? '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+})
 
 const JWT_SECRET = process.env.JWT_SECRET ?? ''
 const JWT_EXPIRES = process.env.JWT_EXPIRES_IN ?? '7d'
@@ -51,12 +56,16 @@ export async function createSession(userId: string, payload: JwtPayload): Promis
   const accessToken = signAccessToken(payload)
   const refreshToken = randomBytes(40).toString('hex')
 
-  const redis = await getRedis()
   const accessHash = hashToken(accessToken)
   const refreshHash = hashToken(refreshToken)
 
-  await redis.setEx(`session:${accessHash}`, 7 * 24 * 3600, userId)
-  await redis.setEx(`refresh:${refreshHash}`, REFRESH_EXPIRES_SECONDS, userId)
+  // Redis writes are best-effort — JWT is the source of truth
+  try {
+    await redis.set(`session:${accessHash}`, userId, { ex: 7 * 24 * 3600 })
+    await redis.set(`refresh:${refreshHash}`, userId, { ex: REFRESH_EXPIRES_SECONDS })
+  } catch {
+    // Redis unavailable or read-only — session still valid via JWT
+  }
 
   return { accessToken, refreshToken }
 }
@@ -65,14 +74,20 @@ export async function validateSession(accessToken: string): Promise<JwtPayload |
   const payload = verifyAccessToken(accessToken)
   if (!payload) return null
 
-  const redis = await getRedis()
-  const hash = hashToken(accessToken)
-  const exists = await redis.exists(`session:${hash}`)
-  return exists ? payload : null
+  // Best-effort Redis check — fallback to JWT-only validation
+  try {
+    const hash = hashToken(accessToken)
+    const exists = await redis.exists(`session:${hash}`)
+    if (exists === 0) return null
+  } catch {
+    // Redis unavailable — trust JWT
+  }
+
+  return payload
 }
 
 export async function invalidateSession(accessToken: string, refreshToken?: string): Promise<void> {
-  const redis = await getRedis()
+
   await redis.del(`session:${hashToken(accessToken)}`)
   if (refreshToken) {
     await redis.del(`refresh:${hashToken(refreshToken)}`)
@@ -83,9 +98,9 @@ export async function rotateRefreshToken(refreshToken: string, newPayload: JwtPa
   accessToken: string
   refreshToken: string
 } | null> {
-  const redis = await getRedis()
+
   const hash = hashToken(refreshToken)
-  const userId = await redis.get(`refresh:${hash}`)
+  const userId = await redis.get<string>(`refresh:${hash}`)
   if (!userId) return null
 
   await redis.del(`refresh:${hash}`)

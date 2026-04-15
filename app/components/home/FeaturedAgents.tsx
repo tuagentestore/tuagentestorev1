@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Bot, ArrowRight, Zap, Star } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, Zap, Star } from 'lucide-react'
 
 const FEATURED = [
   {
@@ -9,6 +10,7 @@ const FEATURED = [
     category: 'Ventas',
     price: 397,
     color: 'from-blue-500 to-indigo-600',
+    image: '/agents/sales-ai-closer.png',
     capabilities: ['Calificación de leads', 'Seguimiento automático', 'Integración CRM'],
   },
   {
@@ -18,6 +20,7 @@ const FEATURED = [
     category: 'Soporte',
     price: 397,
     color: 'from-violet-500 to-purple-600',
+    image: '/agents/ai-support-agent.png',
     capabilities: ['Resolución autónoma 80%', 'Escalada inteligente', 'Multicanal'],
   },
   {
@@ -27,6 +30,7 @@ const FEATURED = [
     category: 'Ventas',
     price: 397,
     color: 'from-indigo-500 to-blue-600',
+    image: '/agents/ai-lead-engine.png',
     capabilities: ['Captura multicanal', 'Scoring automático', 'Alertas en tiempo real'],
   },
   {
@@ -36,6 +40,7 @@ const FEATURED = [
     category: 'Ventas',
     price: 397,
     color: 'from-sky-500 to-blue-600',
+    image: '/agents/appointment-setting.png',
     capabilities: ['Agendamiento 24/7', 'Calificación previa', 'Recordatorios multicanal'],
   },
 ]
@@ -80,42 +85,51 @@ export default function FeaturedAgents() {
             <Link
               key={agent.slug}
               href={`/agents/${agent.slug}`}
-              className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-custom transition-all duration-300 hover:-translate-y-1 flex flex-col"
+              className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/40 hover:shadow-custom transition-all duration-300 hover:-translate-y-1 flex flex-col"
             >
-              {/* Icon */}
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center shadow-custom mb-4`}>
-                <Bot className="w-6 h-6 text-white" />
+              {/* Agent image */}
+              <div className="relative w-full aspect-video overflow-hidden">
+                <Image
+                  src={agent.image}
+                  alt={agent.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-t ${agent.color} opacity-20`} />
               </div>
 
-              {/* Category badge */}
-              <span className={`inline-flex self-start px-2.5 py-1 rounded-full text-xs font-medium border mb-3 ${categoryColors[agent.category] ?? 'bg-muted text-muted-foreground border-border'}`}>
-                {agent.category}
-              </span>
-
-              {/* Name + tagline */}
-              <h3 className="font-bold text-foreground mb-1">{agent.name}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{agent.tagline}</p>
-
-              {/* Capabilities */}
-              <ul className="space-y-1.5 mb-4">
-                {agent.capabilities.map((cap) => (
-                  <li key={cap} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Zap className="w-3 h-3 text-primary shrink-0" />
-                    {cap}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Price + CTA */}
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <div>
-                  <span className="text-lg font-bold text-foreground">${agent.price}</span>
-                  <span className="text-xs text-muted-foreground">/mes</span>
-                </div>
-                <span className="text-xs text-primary font-medium group-hover:gap-1.5 flex items-center gap-1 transition-all">
-                  Ver demo
-                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              <div className="p-5 flex flex-col flex-1">
+                {/* Category badge */}
+                <span className={`inline-flex self-start px-2.5 py-1 rounded-full text-xs font-medium border mb-3 ${categoryColors[agent.category] ?? 'bg-muted text-muted-foreground border-border'}`}>
+                  {agent.category}
                 </span>
+
+                {/* Name + tagline */}
+                <h3 className="font-bold text-foreground mb-1">{agent.name}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{agent.tagline}</p>
+
+                {/* Capabilities */}
+                <ul className="space-y-1.5 mb-4">
+                  {agent.capabilities.map((cap) => (
+                    <li key={cap} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Zap className="w-3 h-3 text-primary shrink-0" />
+                      {cap}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Price + CTA */}
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">${agent.price}</span>
+                    <span className="text-xs text-muted-foreground">/mes</span>
+                  </div>
+                  <span className="text-xs text-primary font-medium group-hover:gap-1.5 flex items-center gap-1 transition-all">
+                    Ver demo
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

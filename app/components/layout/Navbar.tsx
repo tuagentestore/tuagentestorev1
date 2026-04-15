@@ -1,9 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Bot, LayoutGrid, User, Shield, Menu, X, Zap, Sparkles, Building2 } from 'lucide-react'
+import { Bot, LayoutGrid, User, Shield, Menu, X, Sparkles, Building2, Sun, Moon } from 'lucide-react'
 import NotificationBell from './NotificationBell'
+import { useTheme } from './ThemeProvider'
 
 interface NavUser {
   name?: string
@@ -16,6 +18,7 @@ export default function Navbar() {
   const [user, setUser] = useState<NavUser | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { theme, toggle } = useTheme()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -57,14 +60,25 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-custom transition-transform group-hover:scale-105">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-foreground">
-              <span className="text-primary">TuAgente</span>
-              <span className="text-muted-foreground font-medium"> Store</span>
-            </span>
+          <Link href="/" className="flex items-center shrink-0 group">
+            {/* Light mode — color mark */}
+            <Image
+              src="/logo.png"
+              alt="TuAgente Store"
+              width={36}
+              height={36}
+              className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 dark:hidden"
+              priority
+            />
+            {/* Dark mode — white mark */}
+            <Image
+              src="/logo-dark.png"
+              alt="TuAgente Store"
+              width={36}
+              height={36}
+              className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 hidden dark:block"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -104,6 +118,16 @@ export default function Navbar() {
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
             {user && <NotificationBell />}
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggle}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Cambiar tema"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {user ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground truncate max-w-32">
@@ -133,12 +157,21 @@ export default function Navbar() {
           </div>
 
           {/* Mobile toggle */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={toggle}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Cambiar tema"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}

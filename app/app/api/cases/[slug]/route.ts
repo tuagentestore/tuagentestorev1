@@ -3,8 +3,9 @@ import { queryOne } from '@/lib/db'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params
   const c = await queryOne(
     `SELECT c.*,
        COALESCE(
@@ -14,7 +15,7 @@ export async function GET(
        ) AS agents
      FROM cases c
      WHERE c.slug = $1`,
-    [params.slug]
+    [slug]
   ).catch(() => null)
 
   if (!c) return NextResponse.json({ error: 'Not found' }, { status: 404 })

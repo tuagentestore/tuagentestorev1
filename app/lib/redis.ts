@@ -1,35 +1,31 @@
-import { createClient, type RedisClientType } from 'redis'
+import { Redis } from '@upstash/redis'
 
-let client: RedisClientType | undefined
-
-export async function getRedis(): Promise<RedisClientType> {
-  if (!client) {
-    client = createClient({ url: process.env.REDIS_URL }) as RedisClientType
-    client.on('error', (err: Error) => console.error('[Redis] Client error:', err.message))
-    await client.connect()
-  }
-  return client
-}
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL ?? '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+})
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
-  const redis = await getRedis()
-  const value = await redis.get(key)
-  if (!value) return null
   try {
-    return JSON.parse(value) as T
+    const value = await redis.get<T>(key)
+    return value ?? null
   } catch {
     return null
   }
 }
 
 export async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
-  const redis = await getRedis()
-  await redis.setEx(key, ttlSeconds, JSON.stringify(value))
+  try {
+    await redis.set(key, value, { ex: ttlSeconds })
+  } catch {
+    // silently fail — cache miss is acceptable
+  }
 }
 
 export async function cacheDel(key: string): Promise<void> {
-  const redis = await getRedis()
-  await redis.del(key)
+  try {
+    await redis.del(key)
+  } catch {}
 }
 
 export async function rateLimit(
@@ -37,11 +33,14 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number
 ): Promise<{ allowed: boolean; remaining: number }> {
-  const redis = await getRedis()
-  const current = await redis.incr(key)
-  if (current === 1) await redis.expire(key, windowSeconds)
-  return {
-    allowed: current <= limit,
-    remaining: Math.max(0, limit - current),
+  try {
+    const current = await redis.incr(key)
+    if (current === 1) await redis.expire(key, windowSeconds)
+    return {
+      allowed: current <= limit,
+      remaining: Math.max(0, limit - current),
+    }
+  } catch {
+    return { allowed: true, remaining: limit }
   }
 }

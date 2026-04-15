@@ -15,7 +15,6 @@ interface UserRow {
   password_hash: string
   role: string
   tenant_id: string
-  status: string
 }
 
 export async function POST(req: NextRequest) {
@@ -29,16 +28,12 @@ export async function POST(req: NextRequest) {
     const { email, password } = parsed.data
 
     const user = await queryOne<UserRow>(
-      'SELECT id, email, full_name, password_hash, role, tenant_id, status FROM users WHERE email = $1',
+      'SELECT id, email, full_name, password_hash, role, tenant_id FROM users WHERE email = $1',
       [email]
     )
 
     if (!user || !(await verifyPassword(password, user.password_hash))) {
       return NextResponse.json({ error: 'Email o contraseña incorrectos' }, { status: 401 })
-    }
-
-    if (user.status === 'suspended') {
-      return NextResponse.json({ error: 'Cuenta suspendida' }, { status: 403 })
     }
 
     const { accessToken, refreshToken } = await createSession(user.id, {

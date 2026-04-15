@@ -47,3 +47,8 @@ access.log
 *.tmp
 *.temp
 dist/
+
+# ─── Archivos grandes / locales ───
+*.zip
+database/backup/
+caddy/

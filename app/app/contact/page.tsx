@@ -34,11 +34,13 @@ function ContactForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
-          agent_id: null,
-          plan_interest: form.type,
-          message: form.message,
-          source: 'contact_page',
+          user_name: form.name,
+          user_email: form.email,
+          phone: form.phone,
+          company: form.company,
+          plan_interest: ['starter', 'pro', 'enterprise'].includes(form.type) ? form.type : 'starter',
+          use_case: form.type + (form.message ? ': ' + form.message : ''),
+          utm_source: 'contact_page',
         }),
       })
       if (res.ok) {
@@ -168,7 +170,7 @@ export default function ContactPage() {
             <div className="space-y-4">
               {[
                 { icon: '📧', label: 'Email', value: 'hola@tuagentestore.com' },
-                { icon: '💬', label: 'WhatsApp', value: '+54 9 11 XXXX-XXXX' },
+                { icon: '💬', label: 'WhatsApp', value: '+54 343 752-7193' },
                 { icon: '🕐', label: 'Horario', value: 'Lun–Vie 9:00–18:00 (Argentina)' },
               ].map(({ icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3 text-sm">

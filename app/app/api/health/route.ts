@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Pool } from 'pg'
-import { createClient } from 'redis'
+import { Redis } from '@upstash/redis'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,11 +26,12 @@ export async function GET() {
 
   // Check Redis
   try {
-    const client = createClient({ url: process.env.REDIS_URL })
-    await client.connect()
-    const pong = await client.ping()
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL ?? '',
+      token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+    })
+    const pong = await redis.ping()
     health.redis = pong === 'PONG' ? 'ok' : 'error'
-    await client.quit()
   } catch (err) {
     health.redis = 'error'
     health.redis_error = err instanceof Error ? err.message : 'unknown'

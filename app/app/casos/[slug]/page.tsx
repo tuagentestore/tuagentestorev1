@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import CaseDetailClient from '@/components/cases/CaseDetailClient'
 
 interface Props {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 async function getCase(slug: string) {
@@ -19,7 +19,8 @@ async function getCase(slug: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const c = await getCase(params.slug)
+  const { slug } = await params
+  const c = await getCase(slug)
   if (!c) return { title: 'Caso no encontrado | TuAgenteStore' }
   return {
     title: `${c.title} | TuAgenteStore`,
@@ -28,7 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CaseDetailPage({ params }: Props) {
-  const c = await getCase(params.slug)
+  const { slug } = await params
+  const c = await getCase(slug)
   if (!c) notFound()
   return <CaseDetailClient caso={c} />
 }
