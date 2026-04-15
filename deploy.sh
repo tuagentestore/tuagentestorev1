@@ -23,7 +23,7 @@ docker compose build app --no-cache
 
 # ── 3. Restart app service ──
 echo "[3/6] Reiniciando servicio app..."
-docker compose up -d app
+docker compose up -d app --remove-orphans
 
 # ── 4. Wait for app to be healthy ──
 echo "[4/6] Esperando que la app esté lista..."
