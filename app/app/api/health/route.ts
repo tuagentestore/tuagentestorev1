@@ -37,8 +37,9 @@ export async function GET() {
     health.redis_error = err instanceof Error ? err.message : 'unknown'
   }
 
-  const allOk = health.db === 'ok' && health.redis === 'ok'
-  health.status = allOk ? 'ok' : 'degraded'
+  // Redis is optional (cache layer) — only DB is required for healthy status
+  const allOk = health.db === 'ok'
+  health.status = allOk ? (health.redis === 'ok' ? 'ok' : 'degraded') : 'error'
 
   return NextResponse.json(health, {
     status: allOk ? 200 : 503,
