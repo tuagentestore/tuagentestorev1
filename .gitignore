@@ -51,4 +51,3 @@ dist/
 # ─── Archivos grandes / locales ───
 *.zip
 database/backup/
-caddy/
