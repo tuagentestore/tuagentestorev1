@@ -4,7 +4,6 @@
 -- ============================================================
 
 -- Extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- ── Trigger helper ──────────────────────────────────────────
@@ -20,7 +19,7 @@ $$ LANGUAGE plpgsql;
 -- TENANTS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS tenants (
-    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name        VARCHAR(255) NOT NULL,
     slug        VARCHAR(255) UNIQUE NOT NULL,
     plan        VARCHAR(50) NOT NULL DEFAULT 'starter',
@@ -40,7 +39,7 @@ CREATE TRIGGER set_updated_at_tenants
 -- USERS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email           VARCHAR(255) UNIQUE NOT NULL,
     password_hash   VARCHAR(255),
     full_name       VARCHAR(255) NOT NULL,
@@ -65,7 +64,7 @@ CREATE TRIGGER set_updated_at_users
 -- AGENTS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS agents (
-    id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name                    VARCHAR(255) NOT NULL,
     slug                    VARCHAR(200) UNIQUE NOT NULL,
     tagline                 VARCHAR(500),
@@ -124,7 +123,7 @@ CREATE TRIGGER set_updated_at_agents
 -- DEMO SESSIONS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS demo_sessions (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     agent_id        UUID REFERENCES agents(id) ON DELETE CASCADE,
     user_email      VARCHAR(255),
     ip_address      INET,
@@ -148,7 +147,7 @@ CREATE TRIGGER set_updated_at_demo_sessions
 -- RESERVATIONS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reservations (
-    id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     agent_id          UUID REFERENCES agents(id) ON DELETE SET NULL,
     user_name         VARCHAR(255) NOT NULL,
     user_email        VARCHAR(255) NOT NULL,
@@ -181,7 +180,7 @@ CREATE TRIGGER set_updated_at_reservations
 -- SUBSCRIPTIONS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS subscriptions (
-    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id   UUID REFERENCES tenants(id) ON DELETE CASCADE,
     plan        VARCHAR(50) NOT NULL DEFAULT 'starter',
     status      VARCHAR(50) NOT NULL DEFAULT 'active', -- active | cancelled | past_due
@@ -199,7 +198,7 @@ CREATE TRIGGER set_updated_at_subscriptions
 -- USER_AGENTS (agents activated per tenant)
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS user_agents (
-    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id        UUID REFERENCES tenants(id) ON DELETE CASCADE,
     agent_id         UUID REFERENCES agents(id) ON DELETE CASCADE,
     status           VARCHAR(50) NOT NULL DEFAULT 'inactive', -- active | inactive | suspended
@@ -216,7 +215,7 @@ CREATE INDEX IF NOT EXISTS idx_user_agents_tenant ON user_agents(tenant_id);
 -- NOTIFICATIONS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notifications (
-    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
     type        VARCHAR(80) NOT NULL,
     title       VARCHAR(255) NOT NULL,
@@ -234,7 +233,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id) WH
 -- ONBOARDING_SUBMISSIONS
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS onboarding_submissions (
-    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id     UUID UNIQUE REFERENCES tenants(id) ON DELETE CASCADE,
     user_id       UUID REFERENCES users(id) ON DELETE SET NULL,
     industry      VARCHAR(100),
@@ -257,7 +256,7 @@ CREATE TRIGGER set_updated_at_onboarding
 -- CASES
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS cases (
-    id                       UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id                       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title                    VARCHAR(500) NOT NULL,
     slug                     VARCHAR(200) UNIQUE NOT NULL,
     industry                 VARCHAR(100) NOT NULL,
@@ -296,7 +295,7 @@ CREATE TRIGGER set_updated_at_cases
 -- USER_ACTIVITY
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS user_activity (
-    id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id        UUID REFERENCES users(id) ON DELETE SET NULL,
     tenant_id      UUID REFERENCES tenants(id) ON DELETE SET NULL,
     session_id     VARCHAR(255),
