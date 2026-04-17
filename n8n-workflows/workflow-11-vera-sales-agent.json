@@ -1,0 +1,282 @@
+{
+  "name": "11 — Vera Sales Agent (Chat IA)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vera-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: vera-chat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "vera-chat"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer mensajes del body\nconst body = $input.first().json.body ?? $input.first().json;\nconst messages = body.messages ?? [];\n\n// Validar que hay mensajes\nif (!messages.length) {\n  throw new Error('No messages provided');\n}\n\n// Contar mensajes del usuario para contexto\nconst userMessages = messages.filter(m => m.role === 'user');\nconst lastUserMsg = userMessages[userMessages.length - 1]?.content ?? '';\n\n// Detectar señales de interes alto (para logging de leads)\nconst interestKeywords = ['precio', 'costo', 'cuanto', 'contratar', 'activar', 'comprar', 'plan', 'demo', 'prueba', 'reservar', 'quiero', 'necesito'];\nconst isHighInterest = interestKeywords.some(kw => lastUserMsg.toLowerCase().includes(kw));\n\nreturn [{\n  json: {\n    messages,\n    lastUserMsg,\n    isHighInterest,\n    userMessageCount: userMessages.length,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "prepare-messages",
+      "name": "Preparar mensajes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "model": "gpt-4o-mini",
+          "max_tokens": 400,
+          "temperature": 0.7,
+          "messages": [
+            {
+              "role": "system",
+              "content": "Sos Vera, la asistente virtual de TuAgente Store — el marketplace de agentes IA para empresas latinoamericanas.\n\nTu rol es ayudar a visitantes a entender qué agentes existen, para qué sirven, y orientarlos hacia el siguiente paso (ver demo, reservar activación, contactar por WhatsApp).\n\n## Agentes disponibles:\n1. **Sales AI Closer** — Cierra ventas automáticamente por WhatsApp/email. Califica leads, responde objeciones, agenda reuniones. Precio desde $397/mes.\n2. **AI Support Agent** — Atiende consultas de clientes 24/7, resuelve el 80% sin intervención humana. Precio desde $397/mes.\n3. **AI Lead Engine** — Captura y califica leads de campañas automáticamente. Integra con CRM. Precio desde $597/mes.\n4. **Appointment Setting Agent** — Agenda citas y demos automáticamente. Sincroniza con Google Calendar. Precio desde $397/mes.\n5. **Content & Marketing Agent** — Genera contenido para redes sociales, emails y campañas. Precio desde $597/mes.\n6. **Operations Assistant** — Automatiza tareas internas: reportes, seguimientos, alertas. Precio desde $597/mes.\n\n## Planes:\n- **Básico ($397/mes):** 1 agente, hasta 500 conversaciones/mes, soporte por email\n- **Pro ($597/mes):** 2 agentes, hasta 2.000 conversaciones/mes, integraciones avanzadas\n- **Enterprise (a medida):** Múltiples agentes, volumen ilimitado, onboarding dedicado\n\n## Setup:\n- Todo funciona en 24 horas desde que reservás\n- Sin programación ni desarrollo técnico\n- Integra con WhatsApp Business, HubSpot, Google Calendar, Shopify, Mercado Libre, Zapier, n8n\n\n## Comportamiento:\n- Sé amigable, directa y concisa — máximo 3 párrafos o lista breve\n- Cuando alguien muestre interés, empujá a demo gratis o reserva de activación\n- Para hablar con una persona: https://wa.me/5493437527193\n- Para agendar demo: https://tuagentestore.com/contact?type=demo\n- Catálogo completo: https://tuagentestore.com/agents\n- Respondé en español, tuteo (vos)"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "openai-chat",
+      "name": "OpenAI: Vera responde",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [710, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraer respuesta de OpenAI\nconst openaiResponse = $input.first().json;\nconst assistantMessage = openaiResponse.choices?.[0]?.message?.content ?? 'Ups, hubo un problema. Escribinos por WhatsApp: https://wa.me/5493437527193';\nconst tokens = openaiResponse.usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };\n\n// Obtener contexto del nodo anterior (prepare-messages)\nconst prepData = $('Preparar mensajes').first().json;\n\nreturn [{\n  json: {\n    message: assistantMessage,\n    isHighInterest: prepData.isHighInterest,\n    userMessageCount: prepData.userMessageCount,\n    lastUserMsg: prepData.lastUserMsg,\n    tokens,\n    timestamp: prepData.timestamp\n  }\n}];"
+      },
+      "id": "extract-response",
+      "name": "Extraer respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-high-interest",
+              "leftValue": "={{ $json.isHighInterest }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-interest",
+      "name": "¿Lead con interes alto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1170, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_WEBHOOK_BASE }}/webhook/lead-created",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "source": "vera_chat",
+          "message": "={{ $json.lastUserMsg }}",
+          "userMessageCount": "={{ $json.userMessageCount }}",
+          "timestamp": "={{ $json.timestamp }}",
+          "tags": ["vera", "chat", "high-interest"]
+        },
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "notify-lead",
+      "name": "Notificar lead a CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ message: $('Extraer respuesta').first().json.message }) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-success",
+      "name": "Responder al cliente",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1400, 420]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ message: $('Extraer respuesta').first().json.message }) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-lead",
+      "name": "Responder + lead capturado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1620, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Error procesando el mensaje\" }",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "respond-error",
+      "name": "Responder error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [940, 520]
+    }
+  ],
+  "connections": {
+    "Webhook: vera-chat": {
+      "main": [
+        [
+          {
+            "node": "Preparar mensajes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar mensajes": {
+      "main": [
+        [
+          {
+            "node": "OpenAI: Vera responde",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI: Vera responde": {
+      "main": [
+        [
+          {
+            "node": "Extraer respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer respuesta": {
+      "main": [
+        [
+          {
+            "node": "¿Lead con interes alto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Lead con interes alto?": {
+      "main": [
+        [
+          {
+            "node": "Notificar lead a CRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar lead a CRM": {
+      "main": [
+        [
+          {
+            "node": "Responder + lead capturado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": ["vera", "chat", "sales", "ia"],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-16T00:00:00.000Z",
+  "versionId": "1"
+}
