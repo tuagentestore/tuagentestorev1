@@ -8,15 +8,18 @@ export default function Footer() {
   const links = {
     producto: [
       { name: 'Catálogo de Agentes', href: '/agents' },
-      { name: 'Encontrá tu agente', href: '/wizard' },
+      { name: 'Marketplace', href: '/marketplace' },
+      { name: 'Catálogo n8n', href: '/marketplace/catalogo' },
+      { name: 'Comparar Agentes', href: '/marketplace/comparar' },
+      { name: 'Encontrá tu Agente (IA)', href: '/wizard' },
       { name: 'Precios', href: '/pricing' },
-      { name: 'Casos de Implementación', href: '/casos' },
     ],
-    empresa: [
+    industrias: [
       { name: 'Para Inmobiliarias', href: '/para/inmobiliarias' },
       { name: 'Para Clínicas', href: '/para/clinicas' },
       { name: 'Para Concesionarias', href: '/para/concesionarias' },
       { name: 'Para Agencias', href: '/para/agencias' },
+      { name: 'Casos de Implementación', href: '/casos' },
     ],
     soporte: [
       { name: 'Documentación', href: '/docs' },
@@ -40,21 +43,27 @@ export default function Footer() {
 
           {/* Brand col */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center mb-4 w-fit group">
-              <Image
-                src="/logo.png"
-                alt="TuAgente Store"
-                width={36}
-                height={36}
-                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 dark:hidden"
-              />
-              <Image
-                src="/logo-dark.png"
-                alt="TuAgente Store"
-                width={36}
-                height={36}
-                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 hidden dark:block"
-              />
+            <Link href="/" className="inline-flex items-center mb-4 group">
+              <div className="overflow-hidden dark:hidden" style={{ width: 200, height: 90 }}>
+                <Image
+                  src="/logo.png"
+                  alt="TuAgente Store"
+                  width={200}
+                  height={133}
+                  className="transition-opacity group-hover:opacity-80"
+                  style={{ marginTop: -18, marginLeft: -18, filter: 'brightness(0.65) contrast(1.25)' }}
+                />
+              </div>
+              <div className="overflow-hidden hidden dark:block" style={{ width: 200, height: 90 }}>
+                <Image
+                  src="/logo-dark.png"
+                  alt="TuAgente Store"
+                  width={200}
+                  height={133}
+                  className="transition-opacity group-hover:opacity-80"
+                  style={{ marginTop: -18, marginLeft: -18 }}
+                />
+              </div>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
               El marketplace de agentes IA listos para automatizar tu negocio.

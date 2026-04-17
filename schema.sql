@@ -487,6 +487,62 @@ END;
 $$;
 
 -- ============================================================
+-- CASOS DE IMPLEMENTACIÓN
+-- ============================================================
+CREATE TABLE IF NOT EXISTS cases (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title                   TEXT NOT NULL,
+    slug                    TEXT NOT NULL UNIQUE,
+    industry                TEXT NOT NULL,
+    stack                   TEXT[] DEFAULT '{}',
+    setup_time              TEXT,
+    primary_metric_label    TEXT,
+    primary_metric_value    TEXT,
+    summary_bullets         TEXT[] DEFAULT '{}',
+    confidentiality         TEXT NOT NULL DEFAULT 'public' CHECK (confidentiality IN ('public', 'anonymous', 'private')),
+    featured                BOOLEAN DEFAULT FALSE,
+    is_beta                 BOOLEAN DEFAULT FALSE,
+    -- Detail fields
+    problem                 TEXT,
+    solution                TEXT,
+    workflow_map            JSONB DEFAULT '[]',
+    requirements            TEXT[] DEFAULT '{}',
+    deliverables            TEXT[] DEFAULT '{}',
+    actions_definition      TEXT,
+    actions_per_month_example TEXT,
+    risk_controls           TEXT,
+    before_after            JSONB DEFAULT '[]',
+    roi_notes               TEXT,
+    agent_ids               UUID[] DEFAULT '{}',
+    created_at              TIMESTAMPTZ DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cases_industry ON cases(industry);
+CREATE INDEX IF NOT EXISTS idx_cases_featured ON cases(featured);
+CREATE INDEX IF NOT EXISTS idx_cases_slug ON cases(slug);
+
+-- ============================================================
+-- USER ACTIVITY LOG
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_activity (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID REFERENCES users(id) ON DELETE SET NULL,
+    tenant_id       UUID REFERENCES tenants(id) ON DELETE SET NULL,
+    session_id      TEXT,
+    activity_type   TEXT NOT NULL,
+    page            TEXT,
+    agent_id        UUID REFERENCES agents(id) ON DELETE SET NULL,
+    case_id         UUID REFERENCES cases(id) ON DELETE SET NULL,
+    metadata        JSONB DEFAULT '{}',
+    ip_address      TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_activity_user ON user_activity(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_activity_type ON user_activity(activity_type, created_at DESC);
+
+-- ============================================================
 -- SEED: Default Plans
 -- ============================================================
 INSERT INTO plans (name, slug, description, price_monthly, price_yearly, setup_fee, currency, limits, sort_order) VALUES
@@ -523,3 +579,78 @@ INSERT INTO plans (name, slug, description, price_monthly, price_yearly, setup_f
     '{"max_agents": -1, "max_actions_month": -1, "max_integrations": -1, "max_team_members": -1, "support_level": "dedicated", "sla_hours": 4}',
     3
 );
+
+-- ============================================================
+-- SEED: Casos de Implementación
+-- ============================================================
+INSERT INTO cases (title, slug, industry, stack, setup_time, primary_metric_label, primary_metric_value,
+  summary_bullets, confidentiality, featured, is_beta,
+  problem, solution,
+  workflow_map, requirements, deliverables,
+  actions_definition, actions_per_month_example, risk_controls,
+  before_after, roi_notes)
+VALUES
+(
+  'Inmobiliaria reduce 65% el tiempo de gestión comercial',
+  'inmobiliaria-gestion-leads',
+  'Inmobiliaria',
+  ARRAY['WhatsApp', 'HubSpot', 'Gmail', 'Google Sheets'],
+  '24h',
+  'Reducción de tiempo de gestión',
+  '65%',
+  ARRAY['Leads calificados automáticamente', 'Respuesta en menos de 2 minutos', 'Equipo comercial con más foco'],
+  'anonymous', TRUE, FALSE,
+  'La inmobiliaria recibía más de 80 consultas por semana desde portales, WhatsApp y su web. El equipo comercial tardaba hasta 6 horas en responder los primeros mensajes, y los leads fríos se perdían sin seguimiento.',
+  'Implementamos el agente Sales AI Closer conectado a WhatsApp Business y HubSpot. El agente responde en menos de 2 minutos, califica intención de compra/alquiler, detecta el perfil del prospecto y lo deriva al asesor correcto con contexto completo.',
+  '[{"step":1,"description":"Consulta entra por WhatsApp o formulario web"},{"step":2,"description":"El agente saluda, detecta si busca compra, alquiler o tasación"},{"step":3,"description":"Recopila zona, presupuesto y plazo de decisión"},{"step":4,"description":"Puntúa el lead y lo registra en HubSpot con etiqueta de prioridad"},{"step":5,"description":"Si es caliente, deriva al asesor en menos de 30 segundos"}]',
+  ARRAY['WhatsApp Business API activa', 'CRM HubSpot (plan gratuito o superior)', 'Gmail para notificaciones al equipo'],
+  ARRAY['Agente configurado y testeado', 'Flujo en n8n con 5 nodos', 'Dashboard de leads en HubSpot', 'Guía de escalado para el equipo'],
+  'Una acción = 1 conversación iniciada (primer mensaje respondido + calificación básica)',
+  'La inmobiliaria maneja ~350 conversaciones nuevas por mes. Con el plan Pro (2.000 acciones/mes) tiene holgura para el crecimiento.',
+  'Si el lead expresa urgencia extrema o mención de presupuesto muy alto (>USD 200K), el agente notifica al gerente comercial de inmediato vía Slack.',
+  '[{"metric":"Tiempo de primera respuesta","before":"4-6 horas","after":"< 2 minutos","period":"Semana 1"},{"metric":"Leads calificados/semana","before":"12","after":"30+","period":"Mes 1"},{"metric":"Tiempo del equipo en clasificación","before":"8h/semana","after":"< 3h/semana","period":"Mes 1"}]',
+  'Con 65% menos de tiempo en gestión de leads, el equipo cerró 3 operaciones adicionales en el primer mes que antes se perdían por falta de seguimiento rápido.'
+),
+(
+  'Aseguradora procesa 1.200 consultas por mes sin intervención',
+  'aseguradora-consultas-automaticas',
+  'Seguros',
+  ARRAY['WhatsApp', 'Gmail', 'Zendesk', 'Google Sheets'],
+  '24h',
+  'Consultas/mes automatizadas',
+  '1.200+',
+  ARRAY['Atención 24/7 sin escalar al equipo', 'Respuestas consistentes y precisas', 'CSAT del 4.8/5 en consultas automáticas'],
+  'anonymous', TRUE, FALSE,
+  'La aseguradora tenía un equipo de 3 personas atendiendo consultas de cobertura, siniestros y renovaciones. El 78% de las preguntas eran repetitivas (¿qué cubre mi póliza?, ¿cómo denuncio un siniestro?). Fuera del horario laboral, las consultas quedaban sin respuesta por hasta 14 horas.',
+  'Implementamos el AI Support Agent con una base de conocimiento personalizada con los 40 productos de la aseguradora. El agente resuelve autónomamente el 80% de las consultas y escala inteligentemente los casos complejos a Zendesk con contexto completo.',
+  '[{"step":1,"description":"Consulta llega por WhatsApp o email"},{"step":2,"description":"El agente identifica el tipo: cobertura, siniestro, renovación o queja"},{"step":3,"description":"Para coberturas y consultas estándar: responde con la información correcta de la póliza del cliente"},{"step":4,"description":"Para siniestros: guía el proceso paso a paso y crea ticket en Zendesk"},{"step":5,"description":"Para quejas: escala a agente humano con resumen del contexto"}]',
+  ARRAY['WhatsApp Business API', 'Zendesk (cualquier plan)', 'Acceso a la base de datos de pólizas (export CSV o integración directa)'],
+  ARRAY['Agente con base de conocimiento de 40 productos', 'Integración Zendesk para escalado', 'Dashboard de métricas de atención', 'Protocolo de escalado para el equipo'],
+  'Una acción = 1 conversación resuelta (ya sea autónomamente o derivada a Zendesk con contexto)',
+  'La aseguradora procesa 1.200 conversaciones/mes. El plan Pro (2.000 acciones/mes) cubre el volumen actual con margen para picos estacionales.',
+  'Las consultas sobre siniestros de alto valor (>USD 10K) siempre escalan a agente humano, sin excepción. El sistema tiene un modo de "emergencia" que notifica al supervisor.',
+  '[{"metric":"Consultas resueltas sin humano","before":"20%","after":"80%","period":"Mes 1"},{"metric":"Tiempo de respuesta promedio","before":"6h","after":"< 5 min","period":"Semana 1"},{"metric":"Horas del equipo en consultas","before":"120h/mes","after":"< 30h/mes","period":"Mes 2"}]',
+  'El equipo recuperó 90 horas mensuales que ahora destina a ventas de pólizas nuevas. En el primer trimestre, eso representó 4 pólizas corporativas adicionales.'
+),
+(
+  'Estudio legal automatiza el 80% de clasificación documental',
+  'legal-clasificacion-documentos',
+  'Legal',
+  ARRAY['Gmail', 'Google Drive', 'Google Sheets', 'OpenAI'],
+  '48h',
+  'Clasificación automatizada',
+  '80%',
+  ARRAY['Documentos clasificados en segundos', 'Equipo enfocado en análisis de alto valor', 'Cero errores en categorización estándar'],
+  'anonymous', TRUE, FALSE,
+  'El estudio recibía diariamente más de 60 documentos por email: contratos, escrituras, poderes notariales, demandas y resoluciones. Dos paralegales dedicaban 3 horas diarias a clasificar y archivar manualmente en carpetas de Drive. Los errores de clasificación generaban demoras y confusión.',
+  'Implementamos el Operations Assistant configurado para reconocer 15 tipos de documentos legales. El agente procesa los adjuntos de Gmail, clasifica cada documento con precisión del 95%+, los mueve a la carpeta correcta en Drive y actualiza el registro en Sheets.',
+  '[{"step":1,"description":"Email llega a inbox designado con adjunto"},{"step":2,"description":"El agente extrae texto del PDF con OCR"},{"step":3,"description":"IA clasifica el tipo de documento (contrato, poder, escritura, etc.)"},{"step":4,"description":"Identifica cliente/expediente y detecta fecha y partes"},{"step":5,"description":"Mueve el archivo a la carpeta correcta en Drive y actualiza Sheets"}]',
+  ARRAY['Gmail con etiquetas configuradas', 'Google Drive con estructura de carpetas definida', 'Google Sheets para el registro maestro'],
+  ARRAY['Agente configurado con 15 tipos de documentos', 'Integración Gmail + Drive + Sheets', 'Reglas de clasificación documentadas', 'Dashboard de documentos procesados'],
+  'Una acción = 1 documento procesado (clasificado + archivado + registrado)',
+  'El estudio procesa ~900 documentos/mes. Con el plan Pro (2.000 acciones/mes) cubre el volumen con capacidad sobrante.',
+  'Los documentos que el agente clasifica con confianza < 85% van a una carpeta de "revisión manual" y se notifica al paralegal. Ningún documento se archiva definitivamente sin al menos 85% de confianza.',
+  '[{"metric":"Horas en clasificación/semana","before":"15h (2 paralegales)","after":"< 3h","period":"Semana 2"},{"metric":"Errores de clasificación","before":"~8/mes","after":"0 en categorías estándar","period":"Mes 1"},{"metric":"Tiempo de respuesta a clientes","before":"24-48h para encontrar doc","after":"< 2h","period":"Mes 1"}]',
+  'Los paralegales recuperaron 12 horas semanales que ahora usan en preparación de juicios y revisión de contratos complejos, aumentando el throughput del estudio en un 30%.'
+)
+ON CONFLICT (slug) DO NOTHING;

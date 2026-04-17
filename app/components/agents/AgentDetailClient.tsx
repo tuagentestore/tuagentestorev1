@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Star, ArrowRight, GitCompare } from 'lucide-react'
+import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Star, ArrowRight, GitCompare, X, Rocket } from 'lucide-react'
 import DemoChat from './DemoChat'
 import ReservationForm from './ReservationForm'
 
@@ -54,12 +54,92 @@ const gradients: Record<string, string> = {
   'appointment-setting-agent': 'from-sky-500 to-blue-600',
 }
 
+const PARA_QUIEN: Record<string, { si: string[]; no: string[] }> = {
+  'sales-ai-closer': {
+    si: ['Inmobiliarias y brokers', 'Seguros y servicios high-ticket', 'Concesionarias', 'B2B con ciclos cortos'],
+    no: ['Venta consultiva de 6+ meses', 'Productos sin precio definido', 'Equipos sin CRM ni WhatsApp Business'],
+  },
+  'ai-support-agent': {
+    si: ['SaaS con volumen de tickets', 'E-commerce con consultas frecuentes', 'Clínicas y servicios con horarios acotados'],
+    no: ['Soporte técnico de nivel 3 muy especializado', 'Equipos sin base de conocimiento mínima'],
+  },
+  'ai-lead-engine': {
+    si: ['Negocios con campañas activas', 'Landing pages con formularios', 'Franquicias y redes de distribución'],
+    no: ['Empresas sin tráfico ni fuente de leads activa', 'Outbound puro sin activos digitales'],
+  },
+  'marketing-ai-agent': {
+    si: ['Agencias con múltiples clientes', 'E-commerce con campañas en Meta/Google', 'Marcas con calendario de contenido'],
+    no: ['Empresas sin presencia digital activa', 'Negocios sin presupuesto en ads'],
+  },
+  'ecommerce-agent': {
+    si: ['Tiendas en Shopify, WooCommerce o MercadoLibre', 'Negocios con catálogo de productos', 'Marcas con base de clientes existente'],
+    no: ['Servicios sin productos tangibles', 'Negocios sin e-commerce activo'],
+  },
+  'appointment-setting-agent': {
+    si: ['Clínicas y consultorios', 'Concesionarias y salones', 'Servicios de asesoría o consultoría'],
+    no: ['Negocios sin calendario o sistema de agenda', 'Servicios de entrega inmediata sin cita previa'],
+  },
+}
+
+const QUE_INCLUYE = [
+  'Setup y configuración completa del agente',
+  'Integración con tus canales (WhatsApp, CRM, Gmail)',
+  'Personalización de tono, preguntas y flujos',
+  'Pruebas internas antes del lanzamiento',
+  'Onboarding guiado de 30 minutos',
+  'Dashboard inicial con métricas base',
+  'Soporte de arranque por 7 días',
+  'Sin código ni desarrollo previo',
+]
+
+const QUE_NECESITA: Record<string, string[]> = {
+  'sales-ai-closer': [
+    'Acceso a WhatsApp Business API o número dedicado',
+    'Acceso a tu CRM (HubSpot, Pipedrive, Google Sheets)',
+    'FAQs comerciales y respuestas frecuentes',
+    'Mensajes base de seguimiento',
+  ],
+  'ai-support-agent': [
+    'Base de conocimiento o FAQ del producto/servicio',
+    'Acceso a canal de soporte (WhatsApp, email o chat)',
+    'Criterios de escalado a humano',
+    'Tono y estilo de comunicación definidos',
+  ],
+  'ai-lead-engine': [
+    'Fuente de tráfico activa (formulario, landing, ads)',
+    'Criterios de calificación de leads',
+    'CRM o Google Sheets para recibir leads',
+    'Oferta clara y propuesta de valor definida',
+  ],
+  'marketing-ai-agent': [
+    'Acceso a cuentas de Meta Ads y/o Google Ads',
+    'Google Analytics o equivalente configurado',
+    'Objetivos de campaña y KPIs definidos',
+    'Acceso a herramienta de email marketing (opcional)',
+  ],
+  'ecommerce-agent': [
+    'Acceso a la plataforma (Shopify, WooCommerce, MercadoLibre)',
+    'Catálogo de productos actualizado',
+    'Canal de comunicación con clientes (email o WhatsApp)',
+    'Políticas de devolución y envío definidas',
+  ],
+  'appointment-setting-agent': [
+    'Calendario o sistema de agenda (Calendly, Google Cal)',
+    'Horarios disponibles y restricciones',
+    'Canal para confirmación (WhatsApp o email)',
+    'Preguntas de precalificación del cliente',
+  ],
+}
+
 export default function AgentDetailClient({ slug }: { slug: string }) {
   const [agent, setAgent] = useState<Agent | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'demo' | 'reserve'>('overview')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'demo') setActiveTab('demo')
+
     fetch(`/api/agents/${slug}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -220,6 +300,71 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Para quién sí / Para quién no */}
+                {PARA_QUIEN[slug] && (
+                  <div className="bg-card border border-border rounded-2xl p-6">
+                    <h2 className="font-bold text-foreground text-lg mb-4">Para quién es / para quién no</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-3">Ideal para</p>
+                        <ul className="space-y-2">
+                          {PARA_QUIEN[slug].si.map(item => (
+                            <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                              <CheckCircle className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-red-400 uppercase tracking-wide mb-3">No recomendado para</p>
+                        <ul className="space-y-2">
+                          {PARA_QUIEN[slug].no.map(item => (
+                            <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Qué incluye la activación */}
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <h2 className="font-bold text-foreground text-lg mb-4 flex items-center gap-2">
+                    <Rocket className="w-5 h-5 text-primary" />
+                    Qué incluye la activación
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {QUE_INCLUYE.map(item => (
+                      <div key={item} className="flex items-center gap-2.5 p-3 bg-muted/40 rounded-xl">
+                        <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-sm text-foreground">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Qué necesita el cliente */}
+                {QUE_NECESITA[slug] && (
+                  <div className="bg-card border border-border rounded-2xl p-6">
+                    <h2 className="font-bold text-foreground text-lg mb-3">Qué necesitás para activarlo</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Para cumplir con el setup en 24h, necesitamos que tengas disponible:
+                    </p>
+                    <ul className="space-y-2">
+                      {QUE_NECESITA[slug].map(item => (
+                        <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>

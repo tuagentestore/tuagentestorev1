@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { verifyAccessTokenEdge } from './lib/auth-edge'
 
-const PROTECTED_PREFIXES = ['/dashboard', '/onboarding', '/api/auth/me', '/api/auth/logout', '/api/auth/refresh']
+const PROTECTED_PREFIXES = [
+  '/dashboard', '/onboarding',
+  '/api/auth/me', '/api/auth/logout', '/api/auth/refresh',
+  '/api/activity', '/api/notifications', '/api/user-agents',
+]
 const ADMIN_PREFIXES = ['/admin', '/api/admin']
 
 export async function middleware(request: NextRequest) {
@@ -54,5 +58,8 @@ export const config = {
     '/api/auth/logout',
     '/api/auth/refresh',
     '/api/admin/:path*',
+    '/api/activity/:path*',
+    '/api/notifications/:path*',
+    '/api/user-agents/:path*',
   ],
 }

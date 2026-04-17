@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Search, Bot, ArrowRight, Zap, SlidersHorizontal, X,
-  GitCompare, ArrowUpDown, LayoutGrid, List, CheckCircle,
+  GitCompare, ArrowUpDown, LayoutGrid, List, CheckCircle, Clock,
 } from 'lucide-react'
 
 interface Agent {
@@ -20,6 +20,7 @@ interface Agent {
   featured: boolean
   demo_available: boolean
   setup_time_hours?: number
+  ideal_for?: string
 }
 
 type SortKey = 'default' | 'price_asc' | 'price_desc' | 'setup_asc'
@@ -51,12 +52,12 @@ const gradients = [
 ]
 
 const STATIC_AGENTS: Agent[] = [
-  { id: '1', name: 'Sales AI Closer', slug: 'sales-ai-closer', tagline: 'Cierra más ventas, automatiza el seguimiento de leads', category: 'Ventas', capabilities: ['Calificación de leads', 'Seguimiento automático', 'Integración CRM'], integrations: ['HubSpot', 'WhatsApp', 'Gmail'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24 },
-  { id: '2', name: 'AI Support Agent', slug: 'ai-support-agent', tagline: 'Soporte al cliente 24/7 que resuelve, no solo responde', category: 'Soporte', capabilities: ['Resolución autónoma 80%', 'Escalada inteligente', 'Multicanal'], integrations: ['Zendesk', 'WhatsApp', 'Gmail'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24 },
-  { id: '3', name: 'AI Lead Engine', slug: 'ai-lead-engine', tagline: 'Genera y califica leads 24/7 en piloto automático', category: 'Ventas', capabilities: ['Captura multicanal', 'Scoring automático', 'Alertas tiempo real'], integrations: ['Facebook Ads', 'LinkedIn', 'HubSpot'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24 },
-  { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', category: 'Marketing', capabilities: ['Reportes automáticos', 'Generación de contenido', 'Análisis de campañas'], integrations: ['Google Analytics', 'Meta Ads', 'Mailchimp'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true, setup_time_hours: 48 },
-  { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', category: 'E-commerce', capabilities: ['Recuperación de carritos', 'Cross-sell y upsell', 'Post-venta automática'], integrations: ['Shopify', 'WooCommerce', 'MercadoLibre'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true, setup_time_hours: 24 },
-  { id: '6', name: 'Appointment Setting', slug: 'appointment-setting-agent', tagline: 'Agenda reuniones y demos de forma completamente automática', category: 'Ventas', capabilities: ['Agendamiento automático', 'Calificación previa', 'Recordatorios multicanal'], integrations: ['Calendly', 'Google Calendar', 'WhatsApp'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 12 },
+  { id: '1', name: 'Sales AI Closer', slug: 'sales-ai-closer', tagline: 'Cierra más ventas, automatiza el seguimiento de leads', category: 'Ventas', capabilities: ['Calificación de leads', 'Seguimiento automático', 'Integración CRM'], integrations: ['HubSpot', 'WhatsApp', 'Gmail'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24, ideal_for: 'Inmobiliarias, seguros, high-ticket' },
+  { id: '2', name: 'AI Support Agent', slug: 'ai-support-agent', tagline: 'Soporte al cliente 24/7 que resuelve, no solo responde', category: 'Soporte', capabilities: ['Resolución autónoma 80%', 'Escalada inteligente', 'Multicanal'], integrations: ['Zendesk', 'WhatsApp', 'Gmail'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24, ideal_for: 'SaaS, legal, salud, e-commerce' },
+  { id: '3', name: 'AI Lead Engine', slug: 'ai-lead-engine', tagline: 'Genera y califica leads 24/7 en piloto automático', category: 'Ventas', capabilities: ['Captura multicanal', 'Scoring automático', 'Alertas tiempo real'], integrations: ['Facebook Ads', 'LinkedIn', 'HubSpot'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 24, ideal_for: 'Campañas, landing pages, formularios' },
+  { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', category: 'Marketing', capabilities: ['Reportes automáticos', 'Generación de contenido', 'Análisis de campañas'], integrations: ['Google Analytics', 'Meta Ads', 'Mailchimp'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true, setup_time_hours: 48, ideal_for: 'Agencias, e-commerce, marcas' },
+  { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', category: 'E-commerce', capabilities: ['Recuperación de carritos', 'Cross-sell y upsell', 'Post-venta automática'], integrations: ['Shopify', 'WooCommerce', 'MercadoLibre'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true, setup_time_hours: 24, ideal_for: 'Tiendas online, Shopify, MELI' },
+  { id: '6', name: 'Appointment Setting', slug: 'appointment-setting-agent', tagline: 'Agenda reuniones y demos de forma completamente automática', category: 'Ventas', capabilities: ['Agendamiento automático', 'Calificación previa', 'Recordatorios multicanal'], integrations: ['Calendly', 'Google Calendar', 'WhatsApp'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true, setup_time_hours: 12, ideal_for: 'Clínicas, asesorías, concesionarias' },
 ]
 
 export default function CatalogClient() {
@@ -254,10 +255,16 @@ export default function CatalogClient() {
                   {agent.category}
                 </span>
 
-                <h3 className="font-bold text-foreground mb-1">{agent.name}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1 line-clamp-2">{agent.tagline}</p>
+                {agent.ideal_for && (
+                  <p className="text-xs text-muted-foreground mb-1">
+                    <span className="text-muted-foreground/60">Ideal para:</span> {agent.ideal_for}
+                  </p>
+                )}
 
-                <ul className="space-y-1.5 mb-4">
+                <h3 className="font-bold text-foreground mb-1">{agent.name}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3 flex-1 line-clamp-2">{agent.tagline}</p>
+
+                <ul className="space-y-1.5 mb-3">
                   {agent.capabilities?.slice(0, 3).map(cap => (
                     <li key={cap} className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CheckCircle className="w-3 h-3 text-primary shrink-0" />
@@ -266,18 +273,44 @@ export default function CatalogClient() {
                   ))}
                 </ul>
 
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div>
-                    <span className="text-lg font-bold text-foreground">${agent.pricing_basic}</span>
-                    <span className="text-xs text-muted-foreground">/mes</span>
+                {agent.integrations?.length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                    {agent.integrations.slice(0, 3).map(int => (
+                      <span key={int} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
+                        {int}
+                      </span>
+                    ))}
                   </div>
-                  <Link
-                    href={`/agents/${agent.slug}`}
-                    className="group-hover:bg-primary group-hover:text-primary-foreground flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground transition-all"
-                  >
-                    Ver agente
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
+                )}
+
+                <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <span className="text-lg font-bold text-foreground">${agent.pricing_basic}</span>
+                      <span className="text-xs text-muted-foreground">/mes</span>
+                    </div>
+                    {agent.setup_time_hours && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                        <Clock className="w-3 h-3 text-primary" />
+                        {agent.setup_time_hours}h
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Link
+                      href={`/agents/${agent.slug}?tab=demo`}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary/30 text-xs font-medium text-primary hover:bg-primary/10 transition-all"
+                    >
+                      Demo
+                    </Link>
+                    <Link
+                      href={`/agents/${agent.slug}`}
+                      className="group-hover:bg-primary group-hover:text-primary-foreground flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground transition-all"
+                    >
+                      Ver
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
                 </div>
 
                 {/* Compare toggle */}

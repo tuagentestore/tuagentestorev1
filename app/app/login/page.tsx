@@ -115,8 +115,29 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center justify-center mb-6">
-            <Image src="/logo-dark.png" alt="TuAgente Store" width={160} height={44} className="h-11 w-auto object-contain" priority />
+          <Link href="/" className="inline-flex items-center justify-center mb-4">
+            <div className="overflow-hidden dark:hidden" style={{ width: 220, height: 100 }}>
+              <Image
+                src="/logo.png"
+                alt="TuAgente Store"
+                width={220}
+                height={147}
+                className="transition-opacity hover:opacity-80"
+                style={{ marginTop: -20, marginLeft: -20, filter: 'brightness(0.65) contrast(1.25)' }}
+                priority
+              />
+            </div>
+            <div className="overflow-hidden hidden dark:block" style={{ width: 220, height: 100 }}>
+              <Image
+                src="/logo-dark.png"
+                alt="TuAgente Store"
+                width={220}
+                height={147}
+                className="transition-opacity hover:opacity-80"
+                style={{ marginTop: -20, marginLeft: -20 }}
+                priority
+              />
+            </div>
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Iniciar sesión</h1>
           <p className="text-muted-foreground text-sm mt-1">Accedé a tu panel de agentes</p>

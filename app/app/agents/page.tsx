@@ -15,10 +15,13 @@ export default function AgentsPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground mb-4">
-            Catálogo de <span className="text-gradient">Agentes IA</span>
+            Elegí el agente correcto para el <span className="text-gradient">problema correcto</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Encontrá el agente perfecto para tu negocio. Probá el demo en vivo antes de activar.
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-3">
+            Filtrá por objetivo, industria y canal. Probá demos reales y activá el agente con implementación guiada.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Desde <span className="font-semibold text-foreground">USD 397/mes</span> · Demos en vivo · Setup en 24h
           </p>
         </div>
 

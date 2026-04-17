@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { MessageCircle, Camera, Globe, Mail, Facebook } from 'lucide-react'
 
 const industries = [
   'Inmobiliaria', 'Concesionaria', 'Clínica / Salud', 'Agencia de marketing',
@@ -10,11 +11,11 @@ const industries = [
 ]
 
 const channels = [
-  { id: 'whatsapp', label: 'WhatsApp Business', icon: '💬' },
-  { id: 'instagram', label: 'Instagram DM', icon: '📸' },
-  { id: 'website', label: 'Chat en sitio web', icon: '🌐' },
-  { id: 'email', label: 'Email', icon: '📧' },
-  { id: 'facebook', label: 'Facebook Messenger', icon: '📘' },
+  { id: 'whatsapp', label: 'WhatsApp Business', icon: MessageCircle },
+  { id: 'instagram', label: 'Instagram DM', icon: Camera },
+  { id: 'website', label: 'Chat en sitio web', icon: Globe },
+  { id: 'email', label: 'Email', icon: Mail },
+  { id: 'facebook', label: 'Facebook Messenger', icon: Facebook },
 ]
 
 const leadVolumes = [
@@ -91,7 +92,7 @@ export default function OnboardingPage() {
                     : 'bg-gray-800 text-gray-500'
                 }`}
               >
-                {s < step ? '✓' : s}
+                {s < step ? '✔' : s}
               </div>
               {s < 4 && <div className={`flex-1 h-0.5 ${s < step ? 'bg-green-500' : 'bg-gray-800'}`} />}
             </div>
@@ -136,9 +137,9 @@ export default function OnboardingPage() {
                         : 'bg-[#0a0f1e] border-gray-700 text-gray-300 hover:border-gray-500'
                     }`}
                   >
-                    <span>{ch.icon}</span>
+                    <ch.icon className="w-4 h-4 shrink-0" />
                     <span className="text-sm">{ch.label}</span>
-                    {form.channels.includes(ch.id) && <span className="ml-auto text-blue-400">✓</span>}
+                    {form.channels.includes(ch.id) && <span className="ml-auto text-blue-400 text-xs font-bold">OK</span>}
                   </button>
                 ))}
               </div>

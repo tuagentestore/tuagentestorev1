@@ -29,8 +29,30 @@ const INDUSTRY_COLORS: Record<string, string> = {
   Retail: 'from-orange-500 to-amber-500',
 }
 
+const BEFORE_AFTER: Record<string, { before: string; after: string }> = {
+  'inmobiliaria-gestion-leads': {
+    before: 'Leads entrando sin filtro, respuestas tardías y equipo comercial saturado.',
+    after: 'El agente responde en minutos, califica intención real y deriva al asesor con contexto.',
+  },
+  'aseguradora-consultas-automaticas': {
+    before: 'Equipo de atención desbordado por consultas repetitivas fuera de horario.',
+    after: '1.200+ consultas procesadas automáticamente en el primer mes sin intervención humana.',
+  },
+  'legal-clasificacion-documentos': {
+    before: 'Clasificación manual de documentos ocupaba horas diarias del equipo legal.',
+    after: '80% de la clasificación automatizada, equipo liberado para trabajo de mayor valor.',
+  },
+}
+
+const STATIC_CASES: Case[] = [
+  { id: '1', title: 'Inmobiliaria reduce 65% el tiempo de gestión comercial', slug: 'inmobiliaria-gestion-leads', industry: 'Inmobiliaria', stack: ['WhatsApp', 'HubSpot', 'Gmail', 'Sheets'], setup_time: '24h', primary_metric_value: '65%', primary_metric_label: 'Reducción de tiempo', summary_bullets: ['Leads calificados automáticamente', 'Respuesta en menos de 2 minutos', 'Equipo comercial con más foco'], confidentiality: 'public', featured: true, is_beta: false },
+  { id: '2', title: 'Aseguradora procesa 1.200 consultas por mes sin intervención', slug: 'aseguradora-consultas-automaticas', industry: 'Seguros', stack: ['WhatsApp', 'Gmail', 'Zendesk'], setup_time: '24h', primary_metric_value: '1.200+', primary_metric_label: 'Consultas/mes automatizadas', summary_bullets: ['Atención 24/7 sin escalar al equipo', 'Respuestas consistentes y precisas', 'CSAT del 4.8/5 en consultas automáticas'], confidentiality: 'public', featured: true, is_beta: false },
+  { id: '3', title: 'Estudio legal automatiza el 80% de clasificación documental', slug: 'legal-clasificacion-documentos', industry: 'Legal', stack: ['Gmail', 'Google Drive', 'Sheets'], setup_time: '48h', primary_metric_value: '80%', primary_metric_label: 'Clasificación automatizada', summary_bullets: ['Documentos clasificados en segundos', 'Equipo enfocado en análisis de alto valor', 'Cero errores en categorización estándar'], confidentiality: 'public', featured: true, is_beta: false },
+]
+
 function CaseCard({ c }: { c: Case }) {
   const color = INDUSTRY_COLORS[c.industry] ?? 'from-blue-500 to-indigo-500'
+  const ba = BEFORE_AFTER[c.slug]
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col">
       {/* Metric banner */}
@@ -50,15 +72,28 @@ function CaseCard({ c }: { c: Case }) {
       <div className="p-6 flex flex-col flex-1">
         <h3 className="font-bold text-foreground text-base mb-3 leading-snug">{c.title}</h3>
 
-        {/* Bullets */}
-        <ul className="space-y-1.5 mb-4 flex-1">
-          {c.summary_bullets?.slice(0, 3).map((b: string) => (
-            <li key={b} className="flex items-start gap-2 text-sm text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-              {b}
-            </li>
-          ))}
-        </ul>
+        {/* Before/After or bullets */}
+        {ba ? (
+          <div className="space-y-2 mb-4 flex-1">
+            <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+              <p className="text-xs font-semibold text-red-400 mb-1">Antes</p>
+              <p className="text-sm text-muted-foreground">{ba.before}</p>
+            </div>
+            <div className="p-3 bg-green-500/5 border border-green-500/10 rounded-xl">
+              <p className="text-xs font-semibold text-green-400 mb-1">Después</p>
+              <p className="text-sm text-foreground">{ba.after}</p>
+            </div>
+          </div>
+        ) : (
+          <ul className="space-y-1.5 mb-4 flex-1">
+            {c.summary_bullets?.slice(0, 3).map((b: string) => (
+              <li key={b} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                {b}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Stack */}
         <div className="flex flex-wrap gap-1.5 mb-4">
@@ -68,14 +103,24 @@ function CaseCard({ c }: { c: Case }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <span className="text-xs text-muted-foreground">Setup: {c.setup_time}</span>
-          <Link
-            href={`/casos/${c.slug}`}
-            className="flex items-center gap-1 text-sm text-primary font-medium hover:gap-2 transition-all"
-          >
-            Ver caso <ArrowRight className="w-4 h-4" />
-          </Link>
+        <div className="flex items-center justify-between pt-4 border-t border-border gap-2">
+          <span className="text-xs text-muted-foreground shrink-0">Setup: {c.setup_time}</span>
+          <div className="flex gap-2">
+            {ba && (
+              <Link
+                href="/contact?type=demo"
+                className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:shadow-glow transition-all"
+              >
+                Quiero este sistema
+              </Link>
+            )}
+            <Link
+              href={`/casos/${c.slug}`}
+              className="flex items-center gap-1 text-xs text-primary font-medium hover:gap-1.5 transition-all"
+            >
+              Ver caso <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -83,8 +128,8 @@ function CaseCard({ c }: { c: Case }) {
 }
 
 export default function CasosClient() {
-  const [cases, setCases] = useState<Case[]>([])
-  const [loading, setLoading] = useState(true)
+  const [cases, setCases] = useState<Case[]>(STATIC_CASES)
+  const [loading, setLoading] = useState(false)
   const [industry, setIndustry] = useState('Todos')
 
   useEffect(() => {
@@ -109,11 +154,10 @@ export default function CasosClient() {
             Casos reales
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-3">
-            Casos de Implementación
+            Empresas que ya están recuperando tiempo y <span className="text-gradient">vendiendo mejor</span> con agentes IA
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Resultados reales de empresas que automatizaron sus procesos con agentes IA.
-            Métricas verificadas, stacks detallados, pasos replicables.
+            No mostramos promesas abstractas. Mostramos qué se implementó, con qué stack y qué resultado produjo.
           </p>
 
           {/* Global stats */}
@@ -173,20 +217,20 @@ export default function CasosClient() {
 
         {/* CTA */}
         <div className="mt-16 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-primary/20 rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">¿Querés un caso como este?</h2>
-          <p className="text-muted-foreground mb-6">Hablemos de tu negocio y te mostramos qué es posible.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Si querés un caso como este, no necesitás empezar desde cero</h2>
+          <p className="text-muted-foreground mb-6">Elegimos el agente correcto, definimos el stack y te mostramos una ruta clara de activación.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/wizard"
+              href="/contact?type=diagnostico"
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:shadow-glow transition-all"
             >
-              Encontrá tu agente ideal
+              Quiero mi diagnóstico
             </Link>
             <Link
               href="/agents"
               className="px-6 py-3 bg-card border border-border text-foreground rounded-xl font-medium hover:border-primary/50 transition-all"
             >
-              Ver catálogo de agentes
+              Ver agentes
             </Link>
           </div>
         </div>

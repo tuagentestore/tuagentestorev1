@@ -1,31 +1,15 @@
 'use client'
 import Link from 'next/link'
-import { ArrowRight, Zap, Bot, TrendingUp, Shield, Calendar } from 'lucide-react'
-import { useState, useEffect } from 'react'
-
-const ROTATING_WORDS = ['Ventas', 'Soporte', 'Marketing', 'Leads', 'Clientes']
+import { ArrowRight, Zap, Bot, TrendingUp, Shield, Plug } from 'lucide-react'
 
 const LIVE_STATS = [
-  { icon: Bot, label: 'Agentes activos', value: '6+' },
-  { icon: TrendingUp, label: 'Tiempo de setup', value: '24h' },
+  { icon: Bot, label: 'Agentes listos', value: '6+' },
+  { icon: TrendingUp, label: 'Setup en 24h', value: '24h' },
   { icon: Shield, label: 'Disponibilidad', value: '24/7' },
+  { icon: Plug, label: 'Integración real', value: 'WA+CRM' },
 ]
 
 export default function HeroPrimary() {
-  const [wordIdx, setWordIdx] = useState(0)
-  const [visible, setVisible] = useState(true)
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setWordIdx(i => (i + 1) % ROTATING_WORDS.length)
-        setVisible(true)
-      }, 300)
-    }, 2500)
-    return () => clearInterval(id)
-  }, [])
-
   return (
     <section className="relative overflow-hidden bg-background min-h-[92vh] flex items-center">
       {/* Background */}
@@ -40,49 +24,48 @@ export default function HeroPrimary() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
             <Zap className="w-4 h-4" />
-            Marketplace de Agentes IA — Listos en 24h
+            Agentes IA listos para implementar en 24 horas
           </div>
 
           {/* Headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight mb-6">
-            Automatizá tu{' '}
-            <span
-              className="text-gradient-hero inline-block transition-all duration-300"
-              style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-8px)' }}
-            >
-              {ROTATING_WORDS[wordIdx]}
-            </span>
+            Activá agentes IA que{' '}
+            <span className="text-gradient-hero">venden, responden</span>
             <br />
-            con Agentes IA
+            y califican leads por vos
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-            Encontrá, probá y activá agentes IA especializados para tu negocio.
-            Sin programación. Sin meses de desarrollo.
-            <span className="text-foreground font-medium"> Funcionando en 24 horas.</span>
+          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8 max-w-2xl mx-auto">
+            Elegí el agente ideal para tu negocio, probalo en vivo y activalo con onboarding guiado.
+            Sin código. Sin meses de desarrollo.
+            <span className="text-foreground font-medium"> Con impacto real desde la primera semana.</span>
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link
               href="/agents"
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-base hover:shadow-glow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              Explorar Agentes
+              Ver agentes listos
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/contact?type=demo"
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-card border border-border text-foreground rounded-xl font-semibold text-base hover:border-primary/50 hover:bg-muted transition-all"
             >
-              <Calendar className="w-5 h-5 text-primary" />
-              Agendar Demo Gratuita
+              Quiero una demo
             </Link>
           </div>
 
+          {/* Microproof */}
+          <p className="text-sm text-muted-foreground mb-12">
+            Desde <span className="font-semibold text-foreground">USD 397/mes</span> · Setup guiado · Soporte en español · Integraciones reales
+          </p>
+
           {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-6 sm:gap-12">
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
             {LIVE_STATS.map((stat) => (
               <div key={stat.label} className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
