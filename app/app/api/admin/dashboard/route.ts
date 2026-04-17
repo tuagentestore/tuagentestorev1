@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const internalSecret = req.headers.get('x-webhook-secret')
   const role = req.headers.get('x-user-role')
   const isInternal = internalSecret === process.env.WEBHOOK_SECRET_INTERNAL
-  if (!isInternal && role !== 'admin') {
+  if (!isInternal && role !== 'admin' && role !== 'manager') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
