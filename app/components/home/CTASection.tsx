@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Zap, Calendar } from 'lucide-react'
+import { ArrowRight, Zap, Calendar, MessageCircle } from 'lucide-react'
 
 export default function CTASection() {
   return (
@@ -30,7 +30,7 @@ export default function CTASection() {
               Sin tarjeta de crédito, sin compromisos. Solo resultados.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link
                 href="/agents"
                 className="group flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-base hover:shadow-glow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -40,16 +40,25 @@ export default function CTASection() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                href="mailto:hola@tuagentestore.com"
+                href="/contact?type=diagnostico"
                 className="group flex items-center justify-center gap-2 px-8 py-4 bg-card/80 border border-border text-foreground rounded-xl font-semibold text-base hover:border-primary/50 hover:bg-muted transition-all"
               >
                 <Calendar className="w-5 h-5 text-primary" />
-                Hablar con el equipo
+                Contratar Diagnóstico
               </Link>
+              <a
+                href="https://wa.me/5493437527193?text=Hola%2C+me+interesa+TuAgente+Store"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center gap-2 px-8 py-4 bg-[#25D366]/10 border border-[#25D366]/30 text-foreground rounded-xl font-semibold text-base hover:bg-[#25D366]/20 hover:border-[#25D366]/50 transition-all"
+              >
+                <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                Escribir por WhatsApp
+              </a>
             </div>
 
             <p className="text-xs text-muted-foreground mt-6">
-              Respondemos en menos de 2 horas · Lunes a Viernes 9–18h ARG
+              Respondemos en menos de 2 horas · Lunes a Viernes 9–18h ARG · info@tuagentestore.com
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { ArrowRight, Zap, Bot, TrendingUp, Shield, Play } from 'lucide-react'
+import { ArrowRight, Zap, Bot, TrendingUp, Shield, Calendar } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 const ROTATING_WORDS = ['Ventas', 'Soporte', 'Marketing', 'Leads', 'Clientes']
@@ -73,11 +73,11 @@ export default function HeroPrimary() {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="/agents#demo"
+              href="/contact?type=demo"
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-card border border-border text-foreground rounded-xl font-semibold text-base hover:border-primary/50 hover:bg-muted transition-all"
             >
-              <Play className="w-5 h-5 text-primary" />
-              Ver Demo en Vivo
+              <Calendar className="w-5 h-5 text-primary" />
+              Agendar Demo Gratuita
             </Link>
           </div>
 

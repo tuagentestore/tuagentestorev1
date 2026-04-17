@@ -1,9 +1,25 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Star } from 'lucide-react'
+import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Star, ArrowRight, GitCompare } from 'lucide-react'
 import DemoChat from './DemoChat'
 import ReservationForm from './ReservationForm'
+
+const ALL_AGENTS = [
+  { id: '1', name: 'Sales AI Closer', slug: 'sales-ai-closer', tagline: 'Cierra más ventas, automatiza el seguimiento de leads', category: 'Ventas', pricing_basic: 397 },
+  { id: '2', name: 'AI Support Agent', slug: 'ai-support-agent', tagline: 'Soporte al cliente 24/7 que resuelve, no solo responde', category: 'Soporte', pricing_basic: 397 },
+  { id: '3', name: 'AI Lead Engine', slug: 'ai-lead-engine', tagline: 'Genera y califica leads 24/7 en piloto automático', category: 'Ventas', pricing_basic: 397 },
+  { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', category: 'Marketing', pricing_basic: 447 },
+  { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', category: 'E-commerce', pricing_basic: 447 },
+  { id: '6', name: 'Appointment Setting', slug: 'appointment-setting-agent', tagline: 'Agenda reuniones y demos de forma completamente automática', category: 'Ventas', pricing_basic: 397 },
+]
+
+const relatedGradients: Record<string, string> = {
+  Ventas: 'from-blue-500 to-indigo-600',
+  Soporte: 'from-violet-500 to-purple-600',
+  Marketing: 'from-violet-500 to-purple-500',
+  'E-commerce': 'from-cyan-500 to-blue-600',
+}
 
 interface Agent {
   id: string
@@ -295,9 +311,64 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
                 </div>
               </div>
             )}
+
+            {/* Compare CTA */}
+            <div className="bg-gradient-to-br from-primary/10 to-violet-500/10 border border-primary/20 rounded-2xl p-5 text-center">
+              <GitCompare className="w-8 h-8 text-primary mx-auto mb-2" />
+              <p className="text-sm font-medium text-foreground mb-1">¿Comparás con otros?</p>
+              <p className="text-xs text-muted-foreground mb-3">Usá el comparador para decidir mejor.</p>
+              <Link
+                href={`/marketplace/comparar?a=${slug}`}
+                className="w-full py-2 text-xs font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary/10 transition-all block text-center"
+              >
+                Abrir comparador
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* ── AGENTES RELACIONADOS ──────────────────────────── */}
+      {(() => {
+        const related = ALL_AGENTS.filter(a => a.slug !== slug && a.category === agent.category).slice(0, 3)
+        if (related.length === 0) return null
+        return (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+            <div className="border-t border-border pt-12">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-foreground">Agentes relacionados</h2>
+                <Link href="/agents" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                  Ver todos <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {related.map(rel => {
+                  const grad = relatedGradients[rel.category] ?? 'from-blue-500 to-indigo-600'
+                  return (
+                    <Link
+                      key={rel.slug}
+                      href={`/agents/${rel.slug}`}
+                      className="group flex items-start gap-4 p-5 bg-card border border-border rounded-2xl hover:border-primary/40 hover:shadow-custom transition-all"
+                    >
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shrink-0`}>
+                        <Bot className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground text-sm mb-0.5 truncate">{rel.name}</h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{rel.tagline}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm font-bold text-foreground">${rel.pricing_basic}<span className="text-xs text-muted-foreground font-normal">/mes</span></span>
+                          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

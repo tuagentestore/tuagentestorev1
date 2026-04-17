@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Bot, LayoutGrid, User, Shield, Menu, X, Sparkles, Building2, Sun, Moon } from 'lucide-react'
+import { Bot, LayoutGrid, User, Shield, Menu, X, Sparkles, Building2, Sun, Moon, MessageCircle, Store } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import { useTheme } from './ThemeProvider'
 
@@ -41,6 +41,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Inicio', href: '/', icon: LayoutGrid },
+    { name: 'Marketplace', href: '/marketplace', icon: Store },
     { name: 'Catálogo', href: '/agents', icon: Bot },
     { name: 'Casos', href: '/casos', icon: Building2 },
     { name: 'Wizard IA', href: '/wizard', icon: Sparkles },
@@ -59,26 +60,32 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
-          {/* Logo */}
+          {/* Logo — wrapper recorta el espacio en blanco del canvas de la imagen */}
           <Link href="/" className="flex items-center shrink-0 group">
-            {/* Light mode — color mark */}
-            <Image
-              src="/logo.png"
-              alt="TuAgente Store"
-              width={36}
-              height={36}
-              className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 dark:hidden"
-              priority
-            />
-            {/* Dark mode — white mark */}
-            <Image
-              src="/logo-dark.png"
-              alt="TuAgente Store"
-              width={36}
-              height={36}
-              className="h-9 w-auto object-contain transition-opacity group-hover:opacity-80 hidden dark:block"
-              priority
-            />
+            {/* Light mode — brightness reducida para que el texto gris sea visible */}
+            <div className="overflow-hidden dark:hidden" style={{ width: 180, height: 92 }}>
+              <Image
+                src="/logo.png"
+                alt="TuAgente Store"
+                width={220}
+                height={147}
+                className="brightness-75 transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -14, marginLeft: -20 }}
+                priority
+              />
+            </div>
+            {/* Dark mode — logo blanco sobre fondo oscuro */}
+            <div className="overflow-hidden hidden dark:block" style={{ width: 180, height: 92 }}>
+              <Image
+                src="/logo-dark.png"
+                alt="TuAgente Store"
+                width={220}
+                height={147}
+                className="transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -14, marginLeft: -20 }}
+                priority
+              />
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -118,6 +125,17 @@ export default function Navbar() {
           {/* CTA */}
           <div className="hidden md:flex items-center gap-3">
             {user && <NotificationBell />}
+
+            {/* WhatsApp icon */}
+            <a
+              href="https://wa.me/5493437527193?text=Hola%2C+me+interesa+TuAgente+Store"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="p-2 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </a>
 
             {/* Theme toggle */}
             <button

@@ -147,6 +147,13 @@
 }
 .animate-marquee:hover { animation-play-state: paused; }
 
+/* Agent cards carousel */
+.animate-marquee-cards {
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+.animate-marquee-cards:hover { animation-play-state: paused; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgb(var(--background)); }

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import CatalogClient from '@/components/agents/CatalogClient'
 
 export const metadata: Metadata = {
@@ -21,7 +22,15 @@ export default function AgentsPage() {
           </p>
         </div>
 
-        <CatalogClient />
+        <Suspense fallback={
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6 h-64 animate-pulse" />
+            ))}
+          </div>
+        }>
+          <CatalogClient />
+        </Suspense>
       </div>
     </div>
   )

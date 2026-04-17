@@ -3,6 +3,8 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
+import WhatsAppButton from '@/components/layout/WhatsAppButton'
+import SalesAgentWidget from '@/components/chat/SalesAgentWidget'
 
 export const metadata: Metadata = {
   title: {
@@ -20,10 +22,7 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   icons: {
-    icon: [
-      { url: '/favicon.png', media: '(prefers-color-scheme: light)' },
-      { url: '/favicon-dark.png', media: '(prefers-color-scheme: dark)' },
-    ],
+    icon: [{ url: '/favicon.png', type: 'image/png', sizes: '512x512' }],
     shortcut: '/favicon.png',
     apple: '/favicon.png',
   },
@@ -51,6 +50,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main className="min-h-[calc(100vh-64px)]">{children}</main>
           <Footer />
+          <WhatsAppButton />
+          <SalesAgentWidget />
         </ThemeProvider>
       </body>
     </html>

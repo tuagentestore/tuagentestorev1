@@ -106,7 +106,7 @@ export default function SocialProof() {
               {[...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, i) => (
                 <div
                   key={`${brand.name}-${i}`}
-                  className="bg-white rounded-xl px-4 py-3 border border-border/30 shadow-sm flex items-center justify-center mx-3 shrink-0"
+                  className="bg-white dark:bg-card rounded-xl px-4 py-3 border border-border/30 shadow-sm flex items-center justify-center mx-3 shrink-0"
                   style={{ width: 110, height: 52 }}
                 >
                   <Image
