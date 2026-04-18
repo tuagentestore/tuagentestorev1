@@ -42,12 +42,27 @@ const BEFORE_AFTER: Record<string, { before: string; after: string }> = {
     before: 'Clasificación manual de documentos ocupaba horas diarias del equipo legal.',
     after: '80% de la clasificación automatizada, equipo liberado para trabajo de mayor valor.',
   },
+  'tecnologia-soporte-saas': {
+    before: 'Tickets de soporte acumulados, respuestas lentas y equipo técnico distraído con preguntas básicas.',
+    after: 'El 75% de tickets resueltos automáticamente. Soporte humano solo para casos complejos.',
+  },
+  'clinica-agenda-automatica': {
+    before: 'Recepcionistas sobrepasadas, turnos sin confirmar y alto porcentaje de no-show.',
+    after: 'Agenda llena, recordatorios automáticos y 60% menos ausencias en el primer mes.',
+  },
+  'retail-ecommerce-recuperacion': {
+    before: 'Carritos abandonados sin seguimiento y clientes que compraban una sola vez.',
+    after: '22% de carritos recuperados y 35% más de recompras en los primeros 60 días.',
+  },
 }
 
 const STATIC_CASES: Case[] = [
   { id: '1', title: 'Inmobiliaria reduce 65% el tiempo de gestión comercial', slug: 'inmobiliaria-gestion-leads', industry: 'Inmobiliaria', stack: ['WhatsApp', 'HubSpot', 'Gmail', 'Sheets'], setup_time: '24h', primary_metric_value: '65%', primary_metric_label: 'Reducción de tiempo', summary_bullets: ['Leads calificados automáticamente', 'Respuesta en menos de 2 minutos', 'Equipo comercial con más foco'], confidentiality: 'public', featured: true, is_beta: false },
   { id: '2', title: 'Aseguradora procesa 1.200 consultas por mes sin intervención', slug: 'aseguradora-consultas-automaticas', industry: 'Seguros', stack: ['WhatsApp', 'Gmail', 'Zendesk'], setup_time: '24h', primary_metric_value: '1.200+', primary_metric_label: 'Consultas/mes automatizadas', summary_bullets: ['Atención 24/7 sin escalar al equipo', 'Respuestas consistentes y precisas', 'CSAT del 4.8/5 en consultas automáticas'], confidentiality: 'public', featured: true, is_beta: false },
   { id: '3', title: 'Estudio legal automatiza el 80% de clasificación documental', slug: 'legal-clasificacion-documentos', industry: 'Legal', stack: ['Gmail', 'Google Drive', 'Sheets'], setup_time: '48h', primary_metric_value: '80%', primary_metric_label: 'Clasificación automatizada', summary_bullets: ['Documentos clasificados en segundos', 'Equipo enfocado en análisis de alto valor', 'Cero errores en categorización estándar'], confidentiality: 'public', featured: true, is_beta: false },
+  { id: '4', title: 'SaaS tecnológico resuelve el 75% de tickets sin intervención humana', slug: 'tecnologia-soporte-saas', industry: 'Tecnología', stack: ['Zendesk', 'Slack', 'Gmail', 'n8n'], setup_time: '48h', primary_metric_value: '75%', primary_metric_label: 'Tickets resueltos automáticamente', summary_bullets: ['Tiempo de respuesta reducido a menos de 1 minuto', 'Equipo técnico liberado para desarrollo', 'CSAT mejoró de 3.9 a 4.7/5'], confidentiality: 'public', featured: true, is_beta: false },
+  { id: '5', title: 'Clínica llena su agenda y reduce no-show un 60%', slug: 'clinica-agenda-automatica', industry: 'Salud', stack: ['WhatsApp', 'Google Calendar', 'Gmail'], setup_time: '24h', primary_metric_value: '60%', primary_metric_label: 'Menos no-shows', summary_bullets: ['Turnos confirmados automáticamente', 'Recordatorios 24h y 2h antes', '40% más turnos ocupados por mes'], confidentiality: 'public', featured: true, is_beta: false },
+  { id: '6', title: 'Tienda online recupera 22% de carritos y aumenta recompras', slug: 'retail-ecommerce-recuperacion', industry: 'Retail', stack: ['WhatsApp', 'Shopify', 'Gmail', 'Sheets'], setup_time: '24h', primary_metric_value: '22%', primary_metric_label: 'Carritos recuperados', summary_bullets: ['Mensajes personalizados en WhatsApp y email', '35% más recompras en 60 días', 'Sin intervención manual del equipo'], confidentiality: 'public', featured: true, is_beta: false },
 ]
 
 function CaseCard({ c }: { c: Case }) {

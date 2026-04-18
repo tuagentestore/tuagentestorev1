@@ -7,7 +7,7 @@ const plans = [
   {
     id: 'starter',
     name: 'Starter',
-    price: { monthly: 297, annual: 247 },
+    price: { monthly: 397, annual: 330 },
     description: 'Para negocios que quieren empezar a automatizar sin complejidad.',
     features: [
       '1 agente IA activo',
@@ -35,14 +35,14 @@ const plans = [
       'Reportes semanales automáticos',
       'Soporte prioritario (< 4h)',
     ],
-    cta: 'Empezar con Professional',
+    cta: 'Comenzar con Professional',
     highlight: true,
     badge: 'Más elegido',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: { monthly: 1497, annual: 1247 },
+    price: { monthly: 0, annual: 0 },
     description: 'Solución completa para equipos que escalan en serio.',
     features: [
       'Agentes ilimitados',
@@ -150,14 +150,23 @@ export default function PricingPage() {
               <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
 
               <div className="mb-6">
-                <span className="text-4xl font-bold text-white">
-                  ${plan.price[billing].toLocaleString()}
-                </span>
-                <span className="text-gray-400 text-sm ml-2">USD/mes</span>
-                {billing === 'annual' && (
-                  <p className="text-green-400 text-xs mt-1">
-                    Ahorrás ${((plan.price.monthly - plan.price.annual) * 12).toLocaleString()} al año
-                  </p>
+                {plan.id === 'enterprise' ? (
+                  <div>
+                    <span className="text-4xl font-bold text-white">A cotizar</span>
+                    <p className="text-gray-400 text-sm mt-1">Precio según alcance del proyecto</p>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="text-4xl font-bold text-white">
+                      ${plan.price[billing].toLocaleString()}
+                    </span>
+                    <span className="text-gray-400 text-sm ml-2">USD/mes</span>
+                    {billing === 'annual' && (
+                      <p className="text-green-400 text-xs mt-1">
+                        Ahorrás ${((plan.price.monthly - plan.price.annual) * 12).toLocaleString()} al año
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 

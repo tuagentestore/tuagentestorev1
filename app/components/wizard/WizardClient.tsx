@@ -1,17 +1,17 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ArrowLeft, Sparkles, CheckCircle, Loader2, Bot } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Sparkles, CheckCircle, Loader2, Bot, Target, Headphones, Settings, CalendarDays, BarChart2, LucideIcon } from 'lucide-react'
 
 type Step = 1 | 2 | 3 | 4 | 5
 
-const GOALS = [
-  { id: 'leads', label: 'Generar y calificar leads', emoji: '🎯' },
-  { id: 'soporte', label: 'Automatizar soporte al cliente', emoji: '🎧' },
-  { id: 'operaciones', label: 'Optimizar operaciones internas', emoji: '⚙️' },
-  { id: 'agenda', label: 'Gestionar agenda y citas', emoji: '📅' },
-  { id: 'reportes', label: 'Generar reportes automáticos', emoji: '📊' },
-  { id: 'otros', label: 'Otro objetivo', emoji: '✨' },
+const GOALS: { id: string; label: string; Icon: LucideIcon }[] = [
+  { id: 'leads', label: 'Generar y calificar leads', Icon: Target },
+  { id: 'soporte', label: 'Automatizar soporte al cliente', Icon: Headphones },
+  { id: 'operaciones', label: 'Optimizar operaciones internas', Icon: Settings },
+  { id: 'agenda', label: 'Gestionar agenda y citas', Icon: CalendarDays },
+  { id: 'reportes', label: 'Generar reportes automáticos', Icon: BarChart2 },
+  { id: 'otros', label: 'Otro objetivo', Icon: Sparkles },
 ]
 
 const INDUSTRIES = [
@@ -249,7 +249,9 @@ export default function WizardClient() {
                       : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
                   }`}
                 >
-                  <span className="text-2xl">{g.emoji}</span>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${goal === g.id ? 'bg-primary/20' : 'bg-muted'}`}>
+                    <g.Icon className={`w-4 h-4 ${goal === g.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
                   <span className="font-medium text-sm">{g.label}</span>
                   {goal === g.id && <CheckCircle className="w-4 h-4 text-primary ml-auto shrink-0" />}
                 </button>

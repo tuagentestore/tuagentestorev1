@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Home, Heart, Car, TrendingUp, ShoppingCart, Bot } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 const industries: Record<string, {
   name: string
-  emoji: string
+  Icon: LucideIcon
   headline: string
   subheadline: string
   pain: string[]
@@ -15,7 +17,7 @@ const industries: Record<string, {
 }> = {
   inmobiliarias: {
     name: 'Inmobiliarias',
-    emoji: '🏠',
+    Icon: Home,
     headline: 'Tu agente IA captura y califica leads de propiedades las 24 horas',
     subheadline: 'Sin perder consultas de fin de semana. Sin responder el mismo WhatsApp 50 veces.',
     pain: [
@@ -45,7 +47,7 @@ const industries: Record<string, {
   },
   clinicas: {
     name: 'Clínicas y Salud',
-    emoji: '🏥',
+    Icon: Heart,
     headline: 'Más pacientes agendados, menos llamadas perdidas',
     subheadline: 'Tu recepción virtual que nunca descansa ni comete errores.',
     pain: [
@@ -75,7 +77,7 @@ const industries: Record<string, {
   },
   concesionarias: {
     name: 'Concesionarias',
-    emoji: '🚗',
+    Icon: Car,
     headline: 'Más test drives coordinados, menos leads que se enfrían',
     subheadline: 'El agente que pre-califica, responde consultas técnicas y agenda el test drive.',
     pain: [
@@ -105,7 +107,7 @@ const industries: Record<string, {
   },
   agencias: {
     name: 'Agencias de Marketing',
-    emoji: '📈',
+    Icon: TrendingUp,
     headline: 'Más propuestas cerradas, menos tiempo en seguimiento manual',
     subheadline: 'El agente que pre-califica prospectos y convierte tu pipeline en clientes reales.',
     pain: [
@@ -133,6 +135,36 @@ const industries: Record<string, {
     ],
     cta_label: 'Ver demo para agencias',
   },
+  ecommerce: {
+    name: 'E-Commerce',
+    Icon: ShoppingCart,
+    headline: 'Recuperá carritos abandonados y aumentá el ticket promedio automáticamente',
+    subheadline: 'El agente que vende mientras dormís: recuperación, cross-sell y retención en piloto automático.',
+    pain: [
+      'Carritos abandonados sin seguimiento automático',
+      'Sin estrategia de cross-sell post-compra',
+      'Consultas de estado de pedido saturando al equipo',
+      'Clientes que compran una vez y no vuelven',
+    ],
+    solution: [
+      'Recupera carritos con mensajes personalizados en WhatsApp e email',
+      'Sugiere productos complementarios post-compra',
+      'Responde automáticamente: estado del pedido, cambios y devoluciones',
+      'Activa campañas de recompra según comportamiento del cliente',
+    ],
+    agents: [
+      { name: 'Agente de Recuperación', description: 'Recupera carritos abandonados y convierte browsers en compradores.' },
+      { name: 'Agente Post-Venta', description: 'Cross-sell, upsell y seguimiento de satisfacción automático.' },
+      { name: 'Agente de Retención', description: 'Reactiva clientes inactivos con ofertas personalizadas.' },
+    ],
+    result: [
+      { metric: '25%', label: 'carritos recuperados' },
+      { metric: '2x', label: 'ticket promedio con cross-sell' },
+      { metric: '80%', label: 'consultas resueltas sin intervención' },
+      { metric: '40%', label: 'más recompras en 90 días' },
+    ],
+    cta_label: 'Ver demo para e-commerce',
+  },
 }
 
 type Params = { params: Promise<{ industry: string }> }
@@ -152,18 +184,22 @@ export default async function IndustryPage({ params }: Params) {
   const data = industries[industry]
   if (!data) notFound()
 
+  const { Icon } = data
+
   return (
-    <main className="min-h-screen bg-[#0a0f1e] text-white">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="text-5xl mb-4">{data.emoji}</div>
-        <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
+          <Icon className="w-8 h-8 text-primary" />
+        </div>
+        <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
           Solución para {data.name}
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
           {data.headline}
         </h1>
-        <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">{data.subheadline}</p>
+        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">{data.subheadline}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href={`/agents?industry=${industry}`}
@@ -173,7 +209,7 @@ export default async function IndustryPage({ params }: Params) {
           </Link>
           <Link
             href="/contact?type=diagnostico"
-            className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium transition-all"
+            className="px-6 py-3 rounded-xl bg-muted border border-border hover:bg-muted/80 text-foreground font-medium transition-all"
           >
             Diagnóstico gratis
           </Link>
@@ -181,12 +217,12 @@ export default async function IndustryPage({ params }: Params) {
       </section>
 
       {/* Results */}
-      <section className="bg-[#111827] border-y border-gray-700/50 py-12">
+      <section className="bg-muted/30 border-y border-border py-12">
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {data.result.map(({ metric, label }) => (
             <div key={label}>
-              <div className="text-3xl font-bold text-blue-400 mb-1">{metric}</div>
-              <div className="text-sm text-gray-400">{label}</div>
+              <div className="text-3xl font-bold text-primary mb-1">{metric}</div>
+              <div className="text-sm text-muted-foreground">{label}</div>
             </div>
           ))}
         </div>
@@ -199,7 +235,7 @@ export default async function IndustryPage({ params }: Params) {
             <h2 className="text-lg font-bold text-red-400 mb-4">Sin agente IA</h2>
             <ul className="space-y-3">
               {data.pain.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-gray-400 text-sm">
+                <li key={p} className="flex items-start gap-3 text-muted-foreground text-sm">
                   <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span>
                   {p}
                 </li>
@@ -210,7 +246,7 @@ export default async function IndustryPage({ params }: Params) {
             <h2 className="text-lg font-bold text-green-400 mb-4">Con TuAgenteStore</h2>
             <ul className="space-y-3">
               {data.solution.map((s) => (
-                <li key={s} className="flex items-start gap-3 text-gray-300 text-sm">
+                <li key={s} className="flex items-start gap-3 text-foreground text-sm">
                   <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
                   {s}
                 </li>
@@ -221,19 +257,19 @@ export default async function IndustryPage({ params }: Params) {
       </section>
 
       {/* Agents */}
-      <section className="bg-[#111827] border-y border-gray-700/50 py-16">
+      <section className="bg-muted/30 border-y border-border py-16">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
             Agentes incluidos en el paquete para {data.name}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {data.agents.map((agent) => (
-              <div key={agent.name} className="bg-[#0a0f1e] rounded-xl p-5 border border-gray-700/50">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3">
-                  <span className="text-blue-400 text-lg">🤖</span>
+              <div key={agent.name} className="bg-card rounded-xl p-5 border border-border">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3">
+                  <Bot className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-white mb-2">{agent.name}</h3>
-                <p className="text-sm text-gray-400">{agent.description}</p>
+                <h3 className="font-semibold text-foreground mb-2">{agent.name}</h3>
+                <p className="text-sm text-muted-foreground">{agent.description}</p>
               </div>
             ))}
           </div>
@@ -242,10 +278,10 @@ export default async function IndustryPage({ params }: Params) {
 
       {/* CTA */}
       <section className="max-w-2xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">
+        <h2 className="text-3xl font-bold text-foreground mb-4">
           ¿Querés verlo funcionando para tu {data.name.toLowerCase().replace(/s$/, '')}?
         </h2>
-        <p className="text-gray-400 mb-8">
+        <p className="text-muted-foreground mb-8">
           Demo en vivo de 15 minutos. Sin pitch. Sin compromiso.
         </p>
         <Link

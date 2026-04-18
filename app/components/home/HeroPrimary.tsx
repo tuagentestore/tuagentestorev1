@@ -1,6 +1,9 @@
 'use client'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Zap, Bot, TrendingUp, Shield, Plug } from 'lucide-react'
+
+const ROTATING_WORDS = ['soporte', 'leads', 'clientes', 'ventas', 'marketing']
 
 const LIVE_STATS = [
   { icon: Bot, label: 'Agentes listos', value: '6+' },
@@ -10,6 +13,20 @@ const LIVE_STATS = [
 ]
 
 export default function HeroPrimary() {
+  const [wordIndex, setWordIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setWordIndex(i => (i + 1) % ROTATING_WORDS.length)
+        setVisible(true)
+      }, 300)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <section className="relative overflow-hidden bg-background min-h-[92vh] flex items-center">
       {/* Background */}
@@ -27,12 +44,20 @@ export default function HeroPrimary() {
             Agentes IA listos para implementar en 24 horas
           </div>
 
-          {/* Headline */}
+          {/* Headline with rotating word */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight mb-6">
-            Activá agentes IA que{' '}
-            <span className="text-gradient-hero">venden, responden</span>
+            Automatizá tu{' '}
+            <span
+              className="text-gradient-hero inline-block transition-all duration-300"
+              style={{
+                opacity: visible ? 1 : 0,
+                transform: visible ? 'translateY(0)' : 'translateY(8px)',
+              }}
+            >
+              {ROTATING_WORDS[wordIndex]}
+            </span>
             <br />
-            y califican leads por vos
+            con agentes IA
           </h1>
 
           {/* Subheadline */}

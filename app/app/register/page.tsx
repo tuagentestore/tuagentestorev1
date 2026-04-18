@@ -147,7 +147,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center mb-6">
-            <Image src="/logo-dark.png" alt="TuAgente Store" width={160} height={44} className="h-11 w-auto object-contain" priority />
+            <Image src="/logo-dark.png" alt="TuAgente Store" width={220} height={60} className="h-16 w-auto object-contain" priority />
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Crear cuenta</h1>
           <p className="text-muted-foreground text-sm mt-1">Empezá a automatizar tu negocio hoy</p>
