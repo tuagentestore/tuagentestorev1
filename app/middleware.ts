@@ -34,7 +34,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (isAdmin && payload.role !== 'admin') {
+  const STAFF_ROLES = ['admin', 'manager', 'community_manager', 'support']
+  if (isAdmin && !STAFF_ROLES.includes(payload.role)) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

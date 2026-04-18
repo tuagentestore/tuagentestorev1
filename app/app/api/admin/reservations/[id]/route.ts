@@ -1,0 +1,58 @@
+import { NextResponse, type NextRequest } from 'next/server'
+import { z } from 'zod'
+import { queryOne } from '@/lib/db'
+import { triggerN8n } from '@/lib/n8n'
+
+export const dynamic = 'force-dynamic'
+
+const UpdateSchema = z.object({
+  status: z.enum(['new', 'contacted', 'qualified', 'validated', 'paid', 'cancelled', 'no_show']).optional(),
+  admin_notes: z.string().max(2000).optional(),
+  scheduled_at: z.string().optional(),
+})
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const role = req.headers.get('x-user-role')
+  if (role !== 'admin' && role !== 'manager' && role !== 'support') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await req.json()
+  const parsed = UpdateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
+  }
+
+  const { status, admin_notes, scheduled_at } = parsed.data
+
+  if (status === undefined && admin_notes === undefined && scheduled_at === undefined) {
+    return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+  }
+
+  const reservation = await queryOne<{ id: string; status: string; user_email: string }>(
+    `UPDATE reservations
+     SET status       = COALESCE($1, status),
+         admin_notes  = COALESCE($2, admin_notes),
+         scheduled_at = COALESCE($3::timestamptz, scheduled_at),
+         updated_at   = NOW()
+     WHERE id = $4
+     RETURNING id, status, user_email`,
+    [status ?? null, admin_notes ?? null, scheduled_at ?? null, id]
+  )
+
+  if (!reservation) return NextResponse.json({ error: 'No encontrada' }, { status: 404 })
+
+  if (status) {
+    triggerN8n('reservation-updated', {
+      reservation_id: id,
+      new_status: status,
+      admin_notes: admin_notes ?? null,
+    })
+  }
+
+  return NextResponse.json({ success: true, reservation })
+}
