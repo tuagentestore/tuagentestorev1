@@ -45,9 +45,13 @@ export async function POST(req: NextRequest) {
     [agent.id, user_email ?? null, ip, agent.demo_max_messages]
   )
 
+  if (!session) {
+    return NextResponse.json({ error: 'No se pudo crear la sesión de demo' }, { status: 500 })
+  }
+
   // Trigger n8n demo.started (non-blocking)
   triggerN8n('demo-started', {
-    session_id: session!.id,
+    session_id: session.id,
     agent_id: agent.id,
     agent_name: agent.name,
     user_email: user_email ?? null,
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
   })
 
   return NextResponse.json({
-    session_id: session!.id,
+    session_id: session.id,
     max_messages: agent.demo_max_messages,
     messages_used: 0,
   }, { status: 201 })

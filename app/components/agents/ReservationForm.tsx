@@ -78,7 +78,11 @@ export default function ReservationForm({ agentId, agentSlug, agentName }: Props
           Nuestro equipo se pondrá en contacto en menos de <strong className="text-foreground">24 horas hábiles</strong> para coordinar los próximos pasos.
         </p>
         <p className="text-xs text-muted-foreground mt-6">
-          Chequeá tu bandeja de entrada — te enviamos una confirmación.
+          También podés escribirnos por{' '}
+          <a href="https://wa.me/5493437527193" target="_blank" rel="noopener noreferrer" className="text-[#25D366] underline">
+            WhatsApp
+          </a>{' '}
+          si querés respuesta inmediata.
         </p>
       </div>
     )

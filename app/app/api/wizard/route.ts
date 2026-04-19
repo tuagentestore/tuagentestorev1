@@ -1,6 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { query } from '@/lib/db'
-import OpenAI from 'openai'
+import { chatWithRetry } from '@/lib/openai'
+
+// Static fallback: used when DB is empty or unavailable
+const STATIC_AGENTS = [
+  { name: 'Sales AI Closer',           slug: 'sales-ai-closer',           category: 'Ventas',      tagline: 'Cierra más ventas, automatiza el seguimiento de leads',         integrations: ['HubSpot', 'WhatsApp', 'Gmail', 'Calendly'] },
+  { name: 'AI Support Agent',          slug: 'ai-support-agent',          category: 'Soporte',     tagline: 'Soporte al cliente 24/7 que resuelve, no solo responde',         integrations: ['Zendesk', 'WhatsApp', 'Intercom', 'Instagram DM'] },
+  { name: 'AI Lead Engine',            slug: 'ai-lead-engine',            category: 'Ventas',      tagline: 'Genera y califica leads 24/7 en piloto automático',              integrations: ['Facebook Ads', 'Google Ads', 'HubSpot', 'Pipedrive'] },
+  { name: 'Marketing AI Agent',        slug: 'marketing-ai-agent',        category: 'Marketing',   tagline: 'Automatiza reportes, contenido y campañas de marketing',          integrations: ['Google Analytics', 'Meta Ads', 'Mailchimp', 'Notion'] },
+  { name: 'E-Commerce Agent',          slug: 'ecommerce-agent',           category: 'E-commerce',  tagline: 'Recupera carritos, cross-sell y retención automatizada',           integrations: ['Shopify', 'WooCommerce', 'MercadoLibre', 'WhatsApp'] },
+  { name: 'Appointment Setting Agent', slug: 'appointment-setting-agent', category: 'Ventas',      tagline: 'Agenda reuniones y demos de forma completamente automática',       integrations: ['Calendly', 'Google Calendar', 'WhatsApp', 'Zoom'] },
+  { name: 'Operations AI Agent',       slug: 'operations-ai-agent',       category: 'Operaciones', tagline: 'Automatiza procesos internos, reportes y flujos operativos',       integrations: ['Notion', 'Slack', 'Google Sheets', 'n8n'] },
+] as const
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
@@ -10,14 +21,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'goal e industry son requeridos' }, { status: 400 })
   }
 
-  // Load active agents for the prompt
-  const agents = await query(
-    `SELECT name, category, tagline, integrations, pricing_basic, setup_time
+  // Load active agents from DB; fall back to static list when DB is empty or unavailable
+  const dbAgents = await query(
+    `SELECT name, slug, category, tagline, integrations
      FROM agents WHERE status = 'active' ORDER BY featured DESC LIMIT 20`
-  ).catch(() => [])
+  ).catch(() => []) as Array<{ name: string; slug: string; category: string; tagline: string; integrations: string[] }>
 
-  const agentsList = agents.map((a: Record<string, unknown>) =>
-    `- ${a.name} (${a.category}): ${a.tagline} | Integra: ${(a.integrations as string[])?.join(', ')}`
+  const agents = dbAgents.length > 0 ? dbAgents : [...STATIC_AGENTS]
+
+  const agentsList = agents.map(a =>
+    `- ${a.name} (${a.category}): ${a.tagline} | Integra: ${a.integrations?.join(', ')}`
   ).join('\n')
 
   const prompt = `Analizá este perfil empresarial y recomendá la mejor combinación de agentes IA:
@@ -52,27 +65,29 @@ Generá una respuesta en JSON con esta estructura exacta:
 }`
 
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-    })
+    const result = await chatWithRetry(
+      [{ role: 'user', content: prompt }],
+      'gpt-4o-mini',
+      600,
+    )
 
-    const raw = completion.choices[0]?.message?.content ?? '{}'
-    const recommendation = JSON.parse(raw)
+    const recommendation = JSON.parse(result.content)
 
-    // Find agent slugs for CTAs
-    const primaryAgent = agents.find((a: Record<string, unknown>) =>
-      String(a.name).toLowerCase().includes(recommendation.primary?.name?.toLowerCase() ?? '')
-    ) as Record<string, unknown> | undefined
+    // Match primary slug — exact name first, then partial match
+    const primaryName = (recommendation.primary?.name ?? '').toLowerCase().trim()
+    const primaryAgent =
+      agents.find(a => a.name.toLowerCase() === primaryName) ??
+      agents.find(a =>
+        a.name.toLowerCase().includes(primaryName) ||
+        primaryName.includes(a.name.toLowerCase())
+      )
 
     return NextResponse.json({
       recommendation,
       primary_slug: primaryAgent?.slug ?? null,
     })
-  } catch {
-    return NextResponse.json({ error: 'Error al generar recomendación' }, { status: 500 })
+  } catch (err) {
+    console.error('[Wizard] Error:', err)
+    return NextResponse.json({ error: 'Error al generar recomendación. Intentá de nuevo.' }, { status: 500 })
   }
 }

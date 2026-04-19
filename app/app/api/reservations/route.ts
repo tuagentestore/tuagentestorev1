@@ -79,8 +79,12 @@ export async function POST(req: NextRequest) {
       agent_interest: agentName,
     })
 
+    if (!reservation) {
+      return NextResponse.json({ error: 'No se pudo crear la reserva' }, { status: 500 })
+    }
+
     triggerN8n('reservation-created', {
-      reservation_id: reservation!.id,
+      reservation_id: reservation.id,
       name: d.user_name,
       email: d.user_email,
       phone: d.phone,
@@ -91,7 +95,7 @@ export async function POST(req: NextRequest) {
       plan_interest: d.plan_interest,
     })
 
-    return NextResponse.json({ success: true, reservation_id: reservation!.id }, { status: 201 })
+    return NextResponse.json({ success: true, reservation_id: reservation.id }, { status: 201 })
   } catch (err) {
     console.error('[Reservations] Error:', err)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

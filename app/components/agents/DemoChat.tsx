@@ -208,13 +208,23 @@ export default function DemoChat({ agentSlug, agentName, maxMessages = 3, onDemo
           <p className="text-muted-foreground text-xs mb-4">
             Reservá ahora y tenés el agente activo en 24 horas.
           </p>
-          <button
-            onClick={onDemoComplete}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-glow transition-all flex items-center justify-center gap-2"
-          >
-            Reservar activación
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {onDemoComplete ? (
+            <button
+              onClick={() => onDemoComplete()}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-glow transition-all flex items-center justify-center gap-2"
+            >
+              Reservar activación
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <a
+              href="/contact?type=enterprise"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-glow transition-all flex items-center justify-center gap-2"
+            >
+              Reservar activación
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          )}
         </div>
       ) : (
         /* Input */

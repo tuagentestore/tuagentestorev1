@@ -59,7 +59,16 @@ export async function POST(
 
   const messages: ChatMessage[] = [systemMessage, ...history.slice(-6), userMessage]
 
-  const result = await chatWithRetry(messages, session.demo_model ?? 'gpt-4o-mini', 400)
+  let result
+  try {
+    result = await chatWithRetry(messages, session.demo_model ?? 'gpt-4o-mini', 400)
+  } catch (err) {
+    console.error('[Demo message] OpenAI error:', err)
+    return NextResponse.json(
+      { error: 'El agente no está disponible en este momento. Intentá en unos segundos.' },
+      { status: 503 }
+    )
+  }
 
   const assistantMessage: ChatMessage = { role: 'assistant', content: result.content }
   const newConversation = [...history, userMessage, assistantMessage]

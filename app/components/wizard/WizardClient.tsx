@@ -74,16 +74,18 @@ export default function WizardClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ goal, industry, channels, stack, volume }),
       })
-      if (!res.ok) throw new Error('Error en el servidor')
-      setResult(await res.json())
-    } catch {
-      setError('No pudimos generar la recomendación. Intentá de nuevo.')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Error en el servidor')
+      setResult(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos generar la recomendación. Intentá de nuevo.')
     } finally {
       setLoading(false)
     }
   }
 
-  const progress = result ? 100 : ((step - 1) / 5) * 100
+  // Use step/6 so step 1 shows ~17% instead of 0% (better perceived progress)
+  const progress = result ? 100 : (step / 6) * 100
 
   if (loading) {
     return (
