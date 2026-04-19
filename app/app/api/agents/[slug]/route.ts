@@ -20,7 +20,7 @@ export async function GET(
     `SELECT id, name, slug, tagline, description, category,
             capabilities, integrations, use_cases, faqs,
             image_url, pricing_basic, pricing_pro, pricing_enterprise,
-            setup_time_hours, featured, demo_available,
+            setup_time AS setup_time_hours, featured, demo_available,
             demo_max_messages, demo_model
      FROM agents
      WHERE slug = $1 AND status = 'active'`,

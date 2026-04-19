@@ -45,11 +45,15 @@ CREATE TABLE IF NOT EXISTS users (
     full_name       VARCHAR(255) NOT NULL,
     role            VARCHAR(50) NOT NULL DEFAULT 'member', -- admin | member | vendor
     tenant_id       UUID REFERENCES tenants(id) ON DELETE SET NULL,
-    email_verified  BOOLEAN NOT NULL DEFAULT FALSE,
-    google_id       VARCHAR(255),
-    avatar_url      TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    email_verified      BOOLEAN NOT NULL DEFAULT FALSE,
+    email_verified_at   TIMESTAMPTZ,
+    google_id           VARCHAR(255),
+    avatar_url          TEXT,
+    status              VARCHAR(50) NOT NULL DEFAULT 'active',
+    metadata            JSONB DEFAULT '{}',
+    last_login_at       TIMESTAMPTZ,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);

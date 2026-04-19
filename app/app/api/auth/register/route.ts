@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Trigger n8n (non-blocking)
-    triggerN8n('user-created', {
+    triggerN8n('lead-created', {
       user_id: result.userId,
       email,
       name,
