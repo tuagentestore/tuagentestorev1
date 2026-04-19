@@ -2,8 +2,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { queryOne, query } from '@/lib/db'
 import { createSession } from '@/lib/auth'
 
-const DEFAULT_TENANT = 'f4ec480b-23ca-4ce3-a5f1-9ccc6b35611f'
-
 interface GoogleTokens {
   access_token: string
   id_token: string
@@ -78,7 +76,15 @@ export async function GET(req: NextRequest) {
     )
 
     if (!user) {
-      // Create new user from Google
+      // Create tenant first, then user (same as email registration)
+      const tenant = await queryOne<{ id: string }>(
+        `INSERT INTO tenants (name, slug, plan)
+         VALUES ($1, $2, 'starter')
+         RETURNING id`,
+        [profile.name, profile.email.split('@')[0] + '-' + Date.now()]
+      )
+      if (!tenant) throw new Error('Tenant creation failed')
+
       user = await queryOne<UserRow>(
         `INSERT INTO users (email, full_name, avatar_url, role, tenant_id, email_verified, email_verified_at, metadata, password_hash)
          VALUES ($1, $2, $3, 'member', $4, true, NOW(), $5, '')
@@ -87,7 +93,7 @@ export async function GET(req: NextRequest) {
           profile.email,
           profile.name,
           profile.picture,
-          DEFAULT_TENANT,
+          tenant.id,
           JSON.stringify({ google_id: profile.sub, provider: 'google' }),
         ]
       )
