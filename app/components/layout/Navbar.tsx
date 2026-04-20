@@ -24,6 +24,54 @@ const MARKETPLACE_ITEMS = [
   { name: 'Comparar agentes', href: '/marketplace/comparar', icon: GitCompare, desc: 'Compará hasta 3 agentes' },
 ]
 
+function UserMenu({ user, onLogout }: { user: NavUser; onLogout: () => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const initials = (user.name ?? user.email).slice(0, 2).toUpperCase()
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary hover:bg-primary/30 transition-colors"
+      >
+        {initials}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50 py-1">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+          <Link
+            href="/dashboard"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            <User className="w-4 h-4" />
+            Mi Panel
+          </Link>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Cerrar sesión
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Navbar() {
   const pathname = usePathname()
   const [user, setUser] = useState<NavUser | null>(null)
@@ -46,7 +94,6 @@ export default function Navbar() {
       .catch(() => setUser(null))
   }, [])
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (marketRef.current && !marketRef.current.contains(e.target as Node)) {
@@ -65,7 +112,17 @@ export default function Navbar() {
 
   const isMarketActive = pathname.startsWith('/agents') || pathname.startsWith('/marketplace')
 
+  // Desktop nav links — no icons, no Mi Panel (goes to UserMenu dropdown)
   const navLinks = [
+    { name: 'Inicio', href: '/' },
+    { name: 'Casos', href: '/casos' },
+    { name: 'Elegí tu Agente', href: '/wizard' },
+    { name: 'Precios', href: '/pricing' },
+    { name: 'Contacto', href: '/contact' },
+  ]
+
+  // Mobile nav links — with icons
+  const mobileNavLinks = [
     { name: 'Inicio', href: '/', icon: LayoutGrid },
     { name: 'Casos', href: '/casos', icon: Building2 },
     { name: 'Elegí tu Agente', href: '/wizard', icon: Sparkles },
@@ -84,62 +141,60 @@ export default function Navbar() {
         : 'bg-card/50 backdrop-blur-lg border-b border-border/50'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0 group">
-            <div className="overflow-hidden dark:hidden w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
+            <div className="overflow-hidden dark:hidden w-[130px] h-[44px] sm:w-[150px] sm:h-[50px]">
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
                 width={200}
                 height={133}
-                className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
-                style={{ marginTop: -13, marginLeft: -13, filter: 'brightness(0.65) contrast(1.25)' }}
+                className="w-[130px] sm:w-[150px] transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -9, marginLeft: -9, filter: 'brightness(0.65) contrast(1.25)' }}
                 priority
               />
             </div>
-            <div className="overflow-hidden hidden dark:block w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
+            <div className="overflow-hidden hidden dark:block w-[130px] h-[44px] sm:w-[150px] sm:h-[50px]">
               <Image
                 src="/logo-dark.png"
                 alt="TuAgente Store"
                 width={200}
                 height={133}
-                className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
-                style={{ marginTop: -13, marginLeft: -13 }}
+                className="w-[130px] sm:w-[150px] transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -9, marginLeft: -9 }}
                 priority
               />
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Nav — shown at lg+ */}
+          <div className="hidden lg:flex items-center gap-0.5">
             {/* Inicio */}
             <Link
               href="/"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+              className={`px-2.5 py-1.5 rounded-lg transition-all text-sm font-medium ${
                 pathname === '/'
                   ? 'bg-primary text-primary-foreground shadow-custom'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
-              <LayoutGrid className="w-4 h-4" />
               Inicio
             </Link>
 
-            {/* Marketplace dropdown */}
+            {/* Agentes dropdown */}
             <div ref={marketRef} className="relative">
               <button
                 onClick={() => setMarketOpen(p => !p)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all text-sm font-medium ${
                   isMarketActive
                     ? 'bg-primary text-primary-foreground shadow-custom'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
-                <Bot className="w-4 h-4" />
                 Agentes
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${marketOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${marketOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {marketOpen && (
@@ -170,20 +225,19 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Other links */}
+            {/* Other nav links */}
             {navLinks.slice(1).map((item) => {
               const active = isActive(item.href)
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                  className={`px-2.5 py-1.5 rounded-lg transition-all text-sm font-medium ${
                     active
                       ? 'bg-primary text-primary-foreground shadow-custom'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
                   {item.name}
                 </Link>
               )
@@ -192,7 +246,7 @@ export default function Navbar() {
             {user?.role === 'admin' && (
               <Link
                 href="/admin"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all text-sm font-medium ${
                   pathname.startsWith('/admin')
                     ? 'bg-violet-600 text-white'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -204,8 +258,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Desktop Right — shown at lg+ */}
+          <div className="hidden lg:flex items-center gap-2">
             {user && <NotificationBell />}
 
             <a
@@ -213,49 +267,40 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
-              className="p-2 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+              className="p-1.5 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
             </a>
 
             <button
               onClick={toggle}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               aria-label="Cambiar tema"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
             {user ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground truncate max-w-32">
-                  {user.name ?? user.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Salir
-                </button>
-              </div>
+              <UserMenu user={user} onLogout={handleLogout} />
             ) : (
               <Link
                 href="/login"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2"
               >
                 Iniciar sesión
               </Link>
             )}
+
             <Link
               href="/wizard"
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:shadow-glow transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:shadow-glow transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
             >
               Elegí tu Agente
             </Link>
           </div>
 
-          {/* Mobile toggle */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile/tablet toggle — shown below lg */}
+          <div className="lg:hidden flex items-center gap-2">
             {user && <NotificationBell />}
             <button
               onClick={toggle}
@@ -273,9 +318,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile/tablet menu */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1 border-t border-border pt-3">
+          <div className="lg:hidden pb-4 space-y-1 border-t border-border pt-3">
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
@@ -307,7 +352,7 @@ export default function Navbar() {
               ))}
             </div>
 
-            {navLinks.slice(1).map((item) => {
+            {mobileNavLinks.slice(1).map((item) => {
               const active = isActive(item.href)
               return (
                 <Link

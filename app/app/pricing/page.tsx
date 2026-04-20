@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 
 const plans = [
   {
@@ -85,6 +86,7 @@ const faqs = [
 
 export default function PricingPage() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
     <main className="min-h-screen bg-[#0a0f1e] text-white">
@@ -130,11 +132,11 @@ export default function PricingPage() {
 
       {/* Plans */}
       <div className="max-w-5xl mx-auto px-6 pb-20">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative rounded-2xl p-6 border transition-all ${
+              className={`relative rounded-2xl p-6 border transition-all flex flex-col ${
                 plan.highlight
                   ? 'bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-500/10'
                   : 'bg-[#111827] border-gray-700/50'
@@ -170,7 +172,7 @@ export default function PricingPage() {
                 )}
               </div>
 
-              <ul className="space-y-2.5 mb-6">
+              <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
                     <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
@@ -181,7 +183,7 @@ export default function PricingPage() {
 
               <Link
                 href={plan.id === 'enterprise' ? '/contact?type=enterprise' : `/register?plan=${plan.id}`}
-                className={`block w-full text-center py-3 rounded-xl font-semibold transition-all ${
+                className={`block w-full text-center py-3 rounded-xl font-semibold transition-all mt-auto ${
                   plan.highlight
                     ? 'bg-blue-600 hover:bg-blue-500 text-white'
                     : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -203,14 +205,37 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* FAQ */}
+        {/* FAQ — accordion */}
         <div className="mt-20">
           <h2 className="text-2xl font-bold text-center text-white mb-8">Preguntas frecuentes</h2>
-          <div className="max-w-2xl mx-auto space-y-4">
-            {faqs.map(({ q, a }) => (
-              <div key={q} className="bg-[#111827] border border-gray-700/50 rounded-xl p-5">
-                <p className="font-semibold text-white mb-2">{q}</p>
-                <p className="text-gray-400 text-sm">{a}</p>
+          <div className="max-w-2xl mx-auto space-y-3">
+            {faqs.map(({ q, a }, i) => (
+              <div
+                key={q}
+                className="bg-[#111827] border border-gray-700/50 rounded-xl overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/5 transition-colors"
+                >
+                  <span className="font-semibold text-white text-sm">{q}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${
+                      openFaq === i ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`grid transition-all duration-200 ${
+                    openFaq === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <p className="text-gray-400 text-sm px-5 pb-4 border-t border-gray-700/50 pt-3">
+                      {a}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
