@@ -3,7 +3,7 @@ import { ArrowRight, Zap, Calendar, MessageCircle } from 'lucide-react'
 
 export default function CTASection() {
   return (
-    <section className="py-24 bg-background">
+    <section className="py-14 sm:py-24 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
         {/* Glow container */}
@@ -13,7 +13,7 @@ export default function CTASection() {
           <div className="glow-orb w-80 h-80 bg-blue-600/15 -top-20 -left-20" />
           <div className="glow-orb w-60 h-60 bg-violet-600/10 -bottom-10 -right-10" />
 
-          <div className="relative z-10 px-8 py-16 sm:px-16">
+          <div className="relative z-10 px-5 py-10 sm:px-16 sm:py-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Comenzá hoy

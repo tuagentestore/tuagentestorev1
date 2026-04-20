@@ -35,7 +35,7 @@ export default function HeroPrimary() {
       <div className="glow-orb w-[500px] h-[500px] bg-indigo-600/6 top-1/2 -right-60" />
       <div className="glow-orb w-[300px] h-[300px] bg-violet-600/5 bottom-20 left-1/3" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 w-full">
         <div className="max-w-4xl mx-auto text-center">
 
           {/* Badge */}
@@ -106,8 +106,8 @@ export default function HeroPrimary() {
         </div>
 
         {/* Hero visual — animated agent cards */}
-        <div className="mt-20 relative max-w-3xl mx-auto">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="mt-10 sm:mt-20 relative max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {[
               { name: 'Sales AI Closer', category: 'Ventas', color: 'from-blue-500 to-indigo-500', active: true },
               { name: 'AI Support Agent', category: 'Soporte', color: 'from-violet-500 to-purple-500', active: true },
@@ -115,13 +115,13 @@ export default function HeroPrimary() {
             ].map((agent, i) => (
               <div
                 key={agent.name}
-                className={`bg-card border border-border rounded-2xl p-5 transition-all duration-500 hover:border-primary/40 hover:shadow-custom ${
+                className={`bg-card border border-border rounded-2xl p-4 sm:p-5 transition-all duration-500 hover:border-primary/40 hover:shadow-custom ${
                   i === 1 ? 'translate-y-[-8px]' : ''
-                }`}
+                } ${i === 2 ? 'hidden sm:block' : ''}`}
                 style={{ animationDelay: `${i * 0.2}s` }}
               >
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center mb-3`}>
-                  <Bot className="w-5 h-5 text-white" />
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center mb-3`}>
+                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div className="text-xs text-muted-foreground mb-1">{agent.category}</div>
                 <div className="font-semibold text-foreground text-sm leading-tight mb-3">{agent.name}</div>

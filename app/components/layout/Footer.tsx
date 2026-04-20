@@ -37,31 +37,31 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-card border-t border-border mt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <footer className="bg-card border-t border-border mt-14 sm:mt-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-12">
 
           {/* Brand col */}
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center mb-4 group">
-              <div className="overflow-hidden dark:hidden" style={{ width: 200, height: 90 }}>
+              <div className="overflow-hidden dark:hidden w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
                 <Image
                   src="/logo.png"
                   alt="TuAgente Store"
                   width={200}
                   height={133}
-                  className="transition-opacity group-hover:opacity-80"
-                  style={{ marginTop: -18, marginLeft: -18, filter: 'brightness(0.65) contrast(1.25)' }}
+                  className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
+                  style={{ marginTop: -13, marginLeft: -13, filter: 'brightness(0.65) contrast(1.25)' }}
                 />
               </div>
-              <div className="overflow-hidden hidden dark:block" style={{ width: 200, height: 90 }}>
+              <div className="overflow-hidden hidden dark:block w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
                 <Image
                   src="/logo-dark.png"
                   alt="TuAgente Store"
                   width={200}
                   height={133}
-                  className="transition-opacity group-hover:opacity-80"
-                  style={{ marginTop: -18, marginLeft: -18 }}
+                  className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
+                  style={{ marginTop: -13, marginLeft: -13 }}
                 />
               </div>
             </Link>

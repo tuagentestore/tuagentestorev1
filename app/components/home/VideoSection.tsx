@@ -11,7 +11,7 @@ interface Props {
 
 export default function VideoSection({ title, subtitle, videoId, ctaLabel, ctaHref }: Props) {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-12 sm:py-20 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">
           {title}

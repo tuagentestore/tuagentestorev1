@@ -88,25 +88,25 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0 group">
-            <div className="overflow-hidden dark:hidden" style={{ width: 200, height: 90 }}>
+            <div className="overflow-hidden dark:hidden w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
                 width={200}
                 height={133}
-                className="transition-opacity group-hover:opacity-80"
-                style={{ marginTop: -18, marginLeft: -18, filter: 'brightness(0.65) contrast(1.25)' }}
+                className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -13, marginLeft: -13, filter: 'brightness(0.65) contrast(1.25)' }}
                 priority
               />
             </div>
-            <div className="overflow-hidden hidden dark:block" style={{ width: 200, height: 90 }}>
+            <div className="overflow-hidden hidden dark:block w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
               <Image
                 src="/logo-dark.png"
                 alt="TuAgente Store"
                 width={200}
                 height={133}
-                className="transition-opacity group-hover:opacity-80"
-                style={{ marginTop: -18, marginLeft: -18 }}
+                className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
+                style={{ marginTop: -13, marginLeft: -13 }}
                 priority
               />
             </div>

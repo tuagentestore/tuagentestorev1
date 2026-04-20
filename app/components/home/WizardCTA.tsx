@@ -3,9 +3,9 @@ import { Sparkles, ArrowRight } from 'lucide-react'
 
 export default function WizardCTA() {
   return (
-    <section className="py-20">
+    <section className="py-12 sm:py-20">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 border border-primary/20 rounded-3xl p-10 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 border border-primary/20 rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
           {/* Background glow */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="glow-orb w-64 h-64 bg-blue-600/10 -top-20 -left-20" />

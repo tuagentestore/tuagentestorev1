@@ -101,7 +101,7 @@ export default function AgendaSection() {
   }, [])
 
   return (
-    <section className="py-24 bg-muted/30">
+    <section className="py-14 sm:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
 
@@ -163,7 +163,7 @@ export default function AgendaSection() {
               <div className="absolute inset-0 border border-primary/20 rounded-3xl" />
               <div className="glow-orb w-48 h-48 bg-blue-600/20 -top-12 -right-12" />
 
-              <div className="relative z-10 p-8">
+              <div className="relative z-10 p-5 sm:p-8">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mb-5 shadow-custom">
                   <Zap className="w-6 h-6 text-white" />
                 </div>
