@@ -64,6 +64,16 @@ const FEATURED = [
     image: '/agents/ecommerce-agent.png',
     capabilities: ['Recuperación de carritos', 'Gestión de catálogo', 'Revenue automático'],
   },
+  {
+    slug: 'operations-ai-agent',
+    name: 'Operations AI Agent',
+    tagline: 'Automatiza procesos internos, reportes y flujos operativos',
+    category: 'Operaciones',
+    price: 447,
+    color: 'from-sky-500 to-cyan-600',
+    image: '/agents/operations-ai-agent.png',
+    capabilities: ['Automatización de flujos', 'Reportes automáticos', 'Gestión de tareas'],
+  },
 ]
 
 const categoryColors: Record<string, string> = {
@@ -71,12 +81,13 @@ const categoryColors: Record<string, string> = {
   Soporte:    'bg-blue-500/10 text-blue-300 border-blue-500/20',
   Marketing:  'bg-violet-500/10 text-violet-300 border-violet-500/20',
   'E-Commerce': 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+  'Operaciones': 'bg-sky-500/10 text-sky-300 border-sky-500/20',
 }
 
 export default function FeaturedAgents() {
   return (
     <section className="py-14 sm:py-24 bg-muted/20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">

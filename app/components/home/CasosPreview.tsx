@@ -34,7 +34,7 @@ const CASOS = [
 export default function CasosPreview() {
   return (
     <section className="py-14 sm:py-24 bg-muted/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
             Resultados reales

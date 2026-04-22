@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
+import SidebarLayout from '@/components/layout/SidebarLayout'
+import TopBar from '@/components/layout/TopBar'
 import Footer from '@/components/layout/Footer'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 import WhatsAppButton from '@/components/layout/WhatsAppButton'
@@ -67,13 +69,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ThemeProvider>
-          <div className="flex min-h-screen">
+          <SidebarLayout>
             <Sidebar />
-            <div className="flex flex-col flex-1 lg:ml-60 min-h-screen">
+            <div className="flex flex-col flex-1 min-w-0 min-h-screen">
+              <TopBar />
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
-          </div>
+          </SidebarLayout>
           <WhatsAppButton />
           <SalesAgentWidget />
         </ThemeProvider>

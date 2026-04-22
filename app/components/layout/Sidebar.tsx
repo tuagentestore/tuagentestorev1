@@ -5,11 +5,10 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Bot, LayoutGrid, User, Shield, Menu, X, Sparkles, Building2,
-  Sun, Moon, MessageCircle, DollarSign, Package, GitCompare,
-  Workflow,
+  MessageCircle, DollarSign, Package, GitCompare, Workflow,
+  PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
-import NotificationBell from './NotificationBell'
-import { useTheme } from './ThemeProvider'
+import { useSidebarCollapsed } from './SidebarLayout'
 
 interface NavUser {
   name?: string
@@ -21,25 +20,25 @@ const NAV_SECTIONS = [
   {
     label: null,
     items: [
-      { name: 'Inicio', href: '/', icon: LayoutGrid },
+      { name: 'Inicio',            href: '/',                       icon: LayoutGrid },
     ],
   },
   {
     label: 'Marketplace',
     items: [
-      { name: 'Agentes IA',       href: '/agents',                icon: Bot },
-      { name: 'Marketplace',      href: '/marketplace',           icon: Package },
-      { name: 'Catálogo n8n',     href: '/marketplace/catalogo',  icon: Workflow },
-      { name: 'Comparar agentes', href: '/marketplace/comparar',  icon: GitCompare },
+      { name: 'Agentes IA',        href: '/agents',                 icon: Bot },
+      { name: 'Marketplace',       href: '/marketplace',            icon: Package },
+      { name: 'Catálogo n8n',      href: '/marketplace/catalogo',   icon: Workflow },
+      { name: 'Comparar agentes',  href: '/marketplace/comparar',   icon: GitCompare },
     ],
   },
   {
     label: 'Plataforma',
     items: [
-      { name: 'Casos de éxito',   href: '/casos',    icon: Building2 },
-      { name: 'Elegí tu Agente',  href: '/wizard',   icon: Sparkles },
-      { name: 'Precios',          href: '/pricing',  icon: DollarSign },
-      { name: 'Contacto',         href: '/contact',  icon: MessageCircle },
+      { name: 'Casos de éxito',    href: '/casos',                  icon: Building2 },
+      { name: 'Elegí tu Agente',   href: '/wizard',                 icon: Sparkles },
+      { name: 'Precios',           href: '/pricing',                icon: DollarSign },
+      { name: 'Contacto',          href: '/contact',                icon: MessageCircle },
     ],
   },
 ]
@@ -52,56 +51,61 @@ function isActive(href: string, pathname: string): boolean {
 
 function SidebarContent({
   user,
-  onLogout,
   onClose,
+  collapsed = false,
 }: {
   user: NavUser | null
-  onLogout: () => void
   onClose?: () => void
+  collapsed?: boolean
 }) {
   const pathname = usePathname()
-  const { theme, toggle } = useTheme()
-  const initials = user ? (user.name ?? user.email).slice(0, 2).toUpperCase() : null
+  const { toggle } = useSidebarCollapsed()
 
   return (
     <div className="flex flex-col h-full">
 
       {/* Logo */}
-      <div className="px-5 py-4 border-b border-border shrink-0">
-        <Link href="/" onClick={onClose} className="flex items-center group">
-          <div className="overflow-hidden dark:hidden w-[120px] h-[40px]">
-            <Image
-              src="/logo.png"
-              alt="TuAgente Store"
-              width={200}
-              height={133}
-              className="w-[120px] transition-opacity group-hover:opacity-80"
-              style={{ marginTop: -8, marginLeft: -8, filter: 'brightness(0.65) contrast(1.25)' }}
-              priority
-            />
-          </div>
-          <div className="overflow-hidden hidden dark:block w-[120px] h-[40px]">
-            <Image
-              src="/logo-dark.png"
-              alt="TuAgente Store"
-              width={200}
-              height={133}
-              className="w-[120px] transition-opacity group-hover:opacity-80"
-              style={{ marginTop: -8, marginLeft: -8 }}
-              priority
-            />
-          </div>
+      <div className={`border-b border-border shrink-0 flex items-center ${collapsed ? 'justify-center py-3 px-2' : 'px-4 py-3'}`}>
+        <Link href="/" onClick={onClose} className="flex items-center">
+          {collapsed ? (
+            /* Icon only when collapsed */
+            <div className="bg-white rounded-lg p-1 w-9 h-9 flex items-center justify-center overflow-hidden">
+              <Image
+                src="/favicon.png"
+                alt="TuAgente Store"
+                width={36}
+                height={36}
+                className="object-contain w-7 h-7"
+                priority
+              />
+            </div>
+          ) : (
+            /* Full logo when expanded */
+            <div className="bg-white rounded-xl overflow-hidden" style={{ width: 128, height: 43 }}>
+              <Image
+                src="/logo.png"
+                alt="TuAgente Store"
+                width={512}
+                height={170}
+                className="w-full h-full object-contain"
+                priority
+              />
+            </div>
+          )}
         </Link>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+      <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-5">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label ?? '__main'}>
-            {section.label && (
+            {section.label && !collapsed && (
               <p className="px-2 mb-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 {section.label}
               </p>
+            )}
+            {section.label && collapsed && (
+              <div className="border-t border-border/50 my-1" />
             )}
             <ul className="space-y-0.5">
               {section.items.map((item) => {
@@ -111,14 +115,17 @@ function SidebarContent({
                     <Link
                       href={item.href}
                       onClick={onClose}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      title={collapsed ? item.name : undefined}
+                      className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-all ${
+                        collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2'
+                      } ${
                         active
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
-                      {item.name}
+                      {!collapsed && item.name}
                     </Link>
                   </li>
                 )
@@ -127,95 +134,74 @@ function SidebarContent({
           </div>
         ))}
 
+        {/* Mi Panel (logged in) */}
+        {user && (
+          <div>
+            {!collapsed && (
+              <p className="px-2 mb-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Mi cuenta
+              </p>
+            )}
+            {collapsed && <div className="border-t border-border/50 my-1" />}
+            <Link
+              href="/dashboard"
+              onClick={onClose}
+              title={collapsed ? 'Mi Panel' : undefined}
+              className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-all ${
+                collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2'
+              } ${
+                pathname.startsWith('/dashboard')
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              <User className="w-4 h-4 shrink-0" />
+              {!collapsed && 'Mi Panel'}
+            </Link>
+          </div>
+        )}
+
         {/* Admin */}
         {user?.role === 'admin' && (
           <div>
-            <p className="px-2 mb-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Admin
-            </p>
+            {!collapsed && (
+              <p className="px-2 mb-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Admin
+              </p>
+            )}
             <Link
               href="/admin"
               onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              title={collapsed ? 'Admin' : undefined}
+              className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-all ${
+                collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2'
+              } ${
                 pathname.startsWith('/admin')
                   ? 'bg-violet-600 text-white'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <Shield className="w-4 h-4 shrink-0" />
-              Panel Admin
+              {!collapsed && 'Panel Admin'}
             </Link>
           </div>
         )}
       </nav>
 
-      {/* Bottom */}
-      <div className="border-t border-border px-3 py-4 space-y-3 shrink-0">
-        {/* CTA */}
-        <Link
-          href="/wizard"
-          onClick={onClose}
-          className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:shadow-glow transition-all hover:scale-[1.01] active:scale-[0.99]"
+      {/* Collapse toggle button — desktop only */}
+      <div className={`border-t border-border px-2 py-3 shrink-0 flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
+        <button
+          onClick={toggle}
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          Elegí tu Agente
-        </Link>
-
-        {/* User row */}
-        <div className="flex items-center gap-1.5">
-          {/* Theme */}
-          <button
-            onClick={toggle}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-            aria-label="Cambiar tema"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          {/* WhatsApp */}
-          <a
-            href="https://wa.me/5493437527193?text=Hola%2C+me+interesa+TuAgente+Store"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors shrink-0"
-            aria-label="WhatsApp"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </a>
-
-          {user && <NotificationBell />}
-
-          {/* User info */}
-          <div className="ml-auto">
-            {user ? (
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                  {initials}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-medium text-foreground truncate max-w-[70px] leading-tight">
-                    {user.name ?? user.email.split('@')[0]}
-                  </span>
-                  <button
-                    onClick={onLogout}
-                    className="text-[11px] text-red-400 hover:text-red-300 text-left leading-tight transition-colors"
-                  >
-                    Salir
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                onClick={onClose}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <User className="w-3.5 h-3.5" />
-                Iniciar sesión
-              </Link>
-            )}
-          </div>
-        </div>
+          {collapsed ? (
+            <PanelLeftOpen className="w-4 h-4" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4" />
+          )}
+        </button>
       </div>
     </div>
   )
@@ -225,6 +211,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [user, setUser] = useState<NavUser | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const { collapsed } = useSidebarCollapsed()
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -233,20 +220,15 @@ export default function Sidebar() {
       .catch(() => setUser(null))
   }, [])
 
-  // Close drawer on route change
   useEffect(() => { setDrawerOpen(false) }, [pathname])
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    setUser(null)
-    window.location.href = '/'
-  }
 
   return (
     <>
       {/* ── Desktop sidebar (lg+) ─────────────────────────────────── */}
-      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-60 flex-col z-40 bg-card border-r border-border">
-        <SidebarContent user={user} onLogout={handleLogout} />
+      <aside className={`hidden lg:flex fixed left-0 top-0 h-screen flex-col z-40 bg-card border-r border-border transition-[width] duration-300 ${
+        collapsed ? 'w-16' : 'w-60'
+      }`}>
+        <SidebarContent user={user} collapsed={collapsed} />
       </aside>
 
       {/* ── Mobile top bar (< lg) ─────────────────────────────────── */}
@@ -259,46 +241,30 @@ export default function Sidebar() {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo — centered */}
+        {/* Logo centered */}
         <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-          <div className="overflow-hidden dark:hidden w-[108px] h-[36px]">
+          <div className="bg-white rounded-lg overflow-hidden" style={{ width: 108, height: 36 }}>
             <Image
               src="/logo.png"
               alt="TuAgente Store"
-              width={200}
-              height={133}
-              className="w-[108px]"
-              style={{ marginTop: -7, marginLeft: -7, filter: 'brightness(0.65) contrast(1.25)' }}
-              priority
-            />
-          </div>
-          <div className="overflow-hidden hidden dark:block w-[108px] h-[36px]">
-            <Image
-              src="/logo-dark.png"
-              alt="TuAgente Store"
-              width={200}
-              height={133}
-              className="w-[108px]"
-              style={{ marginTop: -7, marginLeft: -7 }}
+              width={512}
+              height={170}
+              className="w-full h-full object-contain"
               priority
             />
           </div>
         </Link>
 
-        <div className="flex items-center gap-1">
-          {user && <NotificationBell />}
-        </div>
+        <div className="w-10" />
       </header>
 
       {/* ── Mobile drawer (< lg) ─────────────────────────────────── */}
       {drawerOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setDrawerOpen(false)}
           />
-          {/* Panel */}
           <div className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border shadow-2xl">
             <button
               onClick={() => setDrawerOpen(false)}
@@ -309,8 +275,8 @@ export default function Sidebar() {
             </button>
             <SidebarContent
               user={user}
-              onLogout={handleLogout}
               onClose={() => setDrawerOpen(false)}
+              collapsed={false}
             />
           </div>
         </div>

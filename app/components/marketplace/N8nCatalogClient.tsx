@@ -85,7 +85,7 @@ export default function N8nCatalogClient() {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="border-b border-border bg-card/50 backdrop-blur-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
               ← Volver al Marketplace
             </Link>
@@ -99,7 +99,7 @@ export default function N8nCatalogClient() {
         </div>
 
         {/* Blurred preview grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 select-none">
             {N8N_CATALOG.slice(0, 9).map((agent) => {
               const Icon = categoryIcons[agent.categorySlug] ?? Bot
@@ -170,7 +170,7 @@ export default function N8nCatalogClient() {
 
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-16 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <Link href="/marketplace" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors">
@@ -243,7 +243,7 @@ export default function N8nCatalogClient() {
       </div>
 
       {/* Agent grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {filtered.length === 0 ? (
           <div className="text-center py-20">
             <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

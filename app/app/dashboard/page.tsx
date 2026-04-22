@@ -168,7 +168,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background relative overflow-hidden">
       <ParticleCanvas />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

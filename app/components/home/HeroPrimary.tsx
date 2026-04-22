@@ -35,7 +35,7 @@ export default function HeroPrimary() {
       <div className="glow-orb w-[500px] h-[500px] bg-indigo-600/6 top-1/2 -right-60" />
       <div className="glow-orb w-[300px] h-[300px] bg-violet-600/5 bottom-20 left-1/3" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 w-full">
+      <div className="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 w-full">
         <div className="max-w-4xl mx-auto text-center">
 
           {/* Badge */}

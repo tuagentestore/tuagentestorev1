@@ -91,7 +91,7 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen bg-[#0a0f1e] text-white">
       {/* Header */}
-      <div className="max-w-5xl mx-auto px-6 pt-20 pb-12 text-center">
+      <div className="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
         <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium mb-6">
           Precios transparentes
         </div>
@@ -131,7 +131,7 @@ export default function PricingPage() {
       </div>
 
       {/* Plans */}
-      <div className="max-w-5xl mx-auto px-6 pb-20">
+      <div className="max-w-4xl mx-auto px-6 pb-20">
         <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {plans.map((plan) => (
             <div

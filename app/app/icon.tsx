@@ -15,18 +15,16 @@ export default function Icon() {
         style={{
           width: 512,
           height: 512,
-          background: '#0e1529',
+          background: '#ffffff',
+          borderRadius: 96,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
         }}
       >
-        {/* The logo PNG is landscape with significant whitespace.
-            Setting width to 740px in a 512px overflow:hidden container
-            crops ~114px of whitespace from each horizontal side,
-            making the actual icon glyph fill ~95% of the canvas. */}
-        <img src={src} style={{ width: 740, flexShrink: 0 }} />
+        {/* Crop the whitespace around the icon glyph */}
+        <img src={src} style={{ width: 760, flexShrink: 0 }} />
       </div>
     ),
     { width: 512, height: 512 },

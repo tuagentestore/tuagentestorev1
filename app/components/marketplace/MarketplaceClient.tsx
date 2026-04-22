@@ -149,7 +149,7 @@ export default function MarketplaceClient() {
           <div className="absolute top-20 right-1/4 w-64 h-64 bg-violet-500/5 rounded-full blur-2xl" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <div className="relative max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
             Marketplace de Agentes IA
@@ -203,7 +203,7 @@ export default function MarketplaceClient() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
 
         {/* ── TRENDING ─────────────────────────────────────────── */}
         <section>

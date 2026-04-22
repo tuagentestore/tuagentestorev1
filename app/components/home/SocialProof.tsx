@@ -1,15 +1,16 @@
 import Image from 'next/image'
-import { Star, Quote } from 'lucide-react'
+import { Star, Quote, Building2, Scale, Shield } from 'lucide-react'
 
 const TESTIMONIALS = [
   {
     name: 'Martín García',
     role: 'Director Comercial',
-    company: 'InmoPro Buenos Aires',
+    company: 'Inmobiliaria de Buenos Aires',
     text: 'El Sales AI Closer califica mis leads antes de que los vea. El equipo solo habla con gente que realmente quiere comprar. Nuestra tasa de cierre subió 40%.',
     rating: 5,
-    avatar: 'MG',
+    icon: Building2,
     color: 'from-blue-500 to-indigo-500',
+    iconColor: 'text-blue-100',
   },
   {
     name: 'Sofía Romero',
@@ -17,17 +18,19 @@ const TESTIMONIALS = [
     company: 'LegalTech Mendoza',
     text: 'El agente de soporte resuelve el 80% de las consultas sin que yo intervenga. Mis clientes piensan que tengo un equipo enorme. Son solo yo y el agente.',
     rating: 5,
-    avatar: 'SR',
+    icon: Scale,
     color: 'from-violet-500 to-purple-500',
+    iconColor: 'text-violet-100',
   },
   {
     name: 'Diego Herrera',
     role: 'Fundador',
-    company: 'Seguros Online AR',
+    company: 'Empresa de Seguros en Argentina',
     text: 'En 24 horas teníamos el agente respondiendo cotizaciones en WhatsApp. Antes perdíamos leads fuera del horario de oficina. Ahora no se escapa ninguno.',
     rating: 5,
-    avatar: 'DH',
+    icon: Shield,
     color: 'from-indigo-500 to-blue-500',
+    iconColor: 'text-indigo-100',
   },
 ]
 
@@ -57,7 +60,7 @@ const BRAND_LOGOS = [
 export default function SocialProof() {
   return (
     <section className="py-14 sm:py-24 bg-muted/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="text-center mb-14">
@@ -87,8 +90,8 @@ export default function SocialProof() {
                 &ldquo;{t.text}&rdquo;
               </p>
               <div className="flex items-center gap-3 pt-4 border-t border-border">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
-                  {t.avatar}
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center shrink-0`}>
+                  <t.icon className={`w-5 h-5 ${t.iconColor}`} />
                 </div>
                 <div>
                   <div className="font-semibold text-foreground text-sm">{t.name}</div>
@@ -122,7 +125,7 @@ export default function SocialProof() {
                     alt={brand.name}
                     width={90}
                     height={32}
-                    className="object-contain max-h-8 w-auto opacity-80 hover:opacity-100 transition-opacity dark:invert dark:opacity-60 dark:hover:opacity-90"
+                    className="object-contain max-h-8 w-auto opacity-90 hover:opacity-100 transition-opacity"
                   />
                 </div>
               ))}

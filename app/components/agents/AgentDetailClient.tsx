@@ -174,7 +174,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-card rounded w-1/4" />
           <div className="h-64 bg-card rounded-2xl" />
@@ -185,7 +185,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
 
   if (!agent) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-screen-2xl mx-auto px-4 py-20 text-center">
         <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-foreground mb-2">Agente no encontrado</h1>
         <Link href="/agents" className="text-primary hover:underline">Volver al catálogo</Link>
@@ -197,7 +197,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Breadcrumb */}
         <Link href="/agents" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-6 transition-colors">
@@ -495,7 +495,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
         const related = ALL_AGENTS.filter(a => a.slug !== slug && a.category === agent.category).slice(0, 3)
         if (related.length === 0) return null
         return (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
             <div className="border-t border-border pt-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-foreground">Agentes relacionados</h2>
