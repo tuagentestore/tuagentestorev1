@@ -32,18 +32,26 @@ const TESTIMONIALS = [
 ]
 
 const BRAND_LOGOS = [
-  { name: 'Google Workspace', src: '/brands/google-workspace.png' },
-  { name: 'WhatsApp Business', src: '/brands/whatsapp.png' },
-  { name: 'HubSpot',           src: '/brands/hubspot.png' },
-  { name: 'Calendly',          src: '/brands/calendly.png' },
-  { name: 'OpenAI',            src: '/brands/openai.png' },
-  { name: 'Zapier',            src: '/brands/zapier.png' },
-  { name: 'Shopify',           src: '/brands/shopify.png' },
-  { name: 'Meta',              src: '/brands/meta.png' },
-  { name: 'n8n',               src: '/brands/n8n.png' },
-  { name: 'Mercado Libre',     src: '/brands/mercadolibre.png' },
-  { name: 'Slack',             src: '/brands/slack.png' },
-  { name: 'Zendesk',           src: '/brands/zendesk.png' },
+  { name: 'WhatsApp',       src: '/integraciones/whatsapp.png' },
+  { name: 'Meta',           src: '/integraciones/meta.png' },
+  { name: 'HubSpot',        src: '/integraciones/hubspot.png' },
+  { name: 'Calendly',       src: '/integraciones/calendly.png' },
+  { name: 'OpenAI',         src: '/integraciones/openai.png' },
+  { name: 'Zapier',         src: '/integraciones/zapier.png' },
+  { name: 'Shopify',        src: '/integraciones/shopify.png' },
+  { name: 'n8n',            src: '/integraciones/n8n.png' },
+  { name: 'Mercado Libre',  src: '/integraciones/mercadolibre.png' },
+  { name: 'Slack',          src: '/integraciones/slack.png' },
+  { name: 'Zendesk',        src: '/integraciones/zendesk.png' },
+  { name: 'Salesforce',     src: '/integraciones/salesforce.png' },
+  { name: 'Google Drive',   src: '/integraciones/google-drive.png' },
+  { name: 'Google Calendar',src: '/integraciones/google-calendar.png' },
+  { name: 'Google Meet',    src: '/integraciones/google-meet.png' },
+  { name: 'Klaviyo',        src: '/integraciones/klaviyo.png' },
+  { name: 'Intercom',       src: '/integraciones/intercom.png' },
+  { name: 'WooCommerce',    src: '/integraciones/woocommerce.png' },
+  { name: 'Notion',         src: '/integraciones/notion.png' },
+  { name: 'Anthropic',      src: '/integraciones/anthropic.png' },
 ]
 
 export default function SocialProof() {
@@ -106,7 +114,7 @@ export default function SocialProof() {
               {[...BRAND_LOGOS, ...BRAND_LOGOS].map((brand, i) => (
                 <div
                   key={`${brand.name}-${i}`}
-                  className="bg-white dark:bg-transparent rounded-xl px-4 py-3 border border-border/30 dark:border-border/10 shadow-sm dark:shadow-none flex items-center justify-center mx-3 shrink-0"
+                  className="flex items-center justify-center mx-4 shrink-0"
                   style={{ width: 110, height: 52 }}
                 >
                   <Image
@@ -114,7 +122,7 @@ export default function SocialProof() {
                     alt={brand.name}
                     width={90}
                     height={32}
-                    className="object-contain max-h-8 w-auto dark:[filter:brightness(0)_invert(1)_opacity(0.7)]"
+                    className="object-contain max-h-8 w-auto opacity-80 hover:opacity-100 transition-opacity dark:invert dark:opacity-60 dark:hover:opacity-90"
                   />
                 </div>
               ))}
