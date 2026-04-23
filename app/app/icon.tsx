@@ -15,16 +15,12 @@ export default function Icon() {
         style={{
           width: 512,
           height: 512,
-          background: '#ffffff',
-          borderRadius: 96,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          overflow: 'hidden',
         }}
       >
-        {/* Crop the whitespace around the icon glyph */}
-        <img src={src} style={{ width: 760, flexShrink: 0 }} />
+        <img src={src} style={{ width: 512, height: 512 }} />
       </div>
     ),
     { width: 512, height: 512 },

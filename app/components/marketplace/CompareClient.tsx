@@ -27,6 +27,7 @@ const ALL_AGENTS: Agent[] = [
   { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', description: 'Automatización completa del ciclo de marketing: análisis, contenido y reportes.', category: 'Marketing', capabilities: ['Reportes automáticos', 'Generación de contenido', 'Análisis de campañas', 'Publicación multi-canal', 'Insights de audiencia', 'ROI tracking'], integrations: ['Google Analytics', 'Meta Ads', 'Mailchimp', 'LinkedIn', 'Google Ads'], use_cases: ['Agencias', 'E-commerce', 'Startups'], pricing_basic: 447, pricing_pro: 697, setup_time_hours: 48, demo_available: true },
   { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', description: 'Maximiza el revenue de tu tienda con recuperación de carritos y upsell automático.', category: 'E-commerce', capabilities: ['Recuperación de carritos', 'Cross-sell y upsell', 'Post-venta automática', 'Retención de clientes', 'Reseñas automáticas', 'Stock alerts'], integrations: ['Shopify', 'WooCommerce', 'MercadoLibre', 'Tiendanube', 'Gmail'], use_cases: ['Tiendas online', 'Dropshipping', 'Marketplaces'], pricing_basic: 447, pricing_pro: 697, setup_time_hours: 24, demo_available: true },
   { id: '6', name: 'Appointment Setting', slug: 'appointment-setting-agent', tagline: 'Agenda reuniones y demos de forma completamente automática', description: 'Agenta reuniones, califica prospectos y envía recordatorios sin intervención humana.', category: 'Ventas', capabilities: ['Agendamiento automático', 'Calificación previa', 'Recordatorios multicanal', 'Integración calendario', 'Reagendamiento', 'No-show follow-up'], integrations: ['Calendly', 'Google Calendar', 'WhatsApp', 'Gmail', 'Zoom'], use_cases: ['Clínicas', 'Consultoras', 'Inmobiliarias'], pricing_basic: 397, pricing_pro: 597, setup_time_hours: 12, demo_available: true },
+  { id: '7', name: 'Operations AI Agent', slug: 'operations-ai-agent', tagline: 'Automatiza procesos internos, reportes y flujos operativos', description: 'Automatización de procesos internos: flujos, reportes y gestión de tareas sin intervención manual.', category: 'Operaciones', capabilities: ['Automatización de flujos', 'Reportes automáticos', 'Gestión de tareas', 'Alertas inteligentes', 'Integraciones internas', 'Dashboards en tiempo real'], integrations: ['Notion', 'Slack', 'Google Sheets', 'n8n', 'Zapier', 'Gmail'], use_cases: ['Startups', 'Pymes operativas', 'Equipos de ops'], pricing_basic: 447, pricing_pro: 697, setup_time_hours: 48, demo_available: false },
 ]
 
 const gradients: Record<string, string> = {
@@ -34,6 +35,7 @@ const gradients: Record<string, string> = {
   Soporte: 'from-violet-500 to-purple-600',
   Marketing: 'from-violet-500 to-purple-500',
   'E-commerce': 'from-cyan-500 to-blue-600',
+  Operaciones: 'from-sky-500 to-cyan-600',
 }
 
 // All capabilities union for comparison matrix
@@ -81,14 +83,45 @@ export default function CompareClient() {
 
   if (agents.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center px-4">
-          <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Sin agentes para comparar</h1>
-          <p className="text-muted-foreground mb-6">Seleccioná agentes desde el catálogo usando el botón "Comparar".</p>
-          <Link href="/marketplace" className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-glow transition-all">
-            Ir al Marketplace
-          </Link>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center gap-3 mb-8">
+            <Link href="/marketplace" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Marketplace
+            </Link>
+            <span className="text-border">/</span>
+            <h1 className="text-xl font-bold text-foreground">Comparar agentes</h1>
+          </div>
+
+          <div className="text-center mb-10">
+            <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Elegí hasta 3 agentes para comparar</h2>
+            <p className="text-muted-foreground text-sm">Seleccioná los agentes que querés analizar en detalle.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {ALL_AGENTS.map(a => {
+              const grad = gradients[a.category] ?? 'from-blue-500 to-indigo-600'
+              return (
+                <button
+                  key={a.slug}
+                  onClick={() => addAgent(a.slug)}
+                  className="bg-card border border-border rounded-2xl p-5 text-left hover:border-primary/40 hover:shadow-custom transition-all duration-200 group"
+                >
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center mb-3`}>
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-foreground text-sm mb-1">{a.name}</h3>
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{a.tagline}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-primary font-medium">${a.pricing_basic}/mes</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{a.category}</span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
     )

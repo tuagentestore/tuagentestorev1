@@ -153,9 +153,16 @@ export default function CasosClient() {
       : `/api/cases?industry=${encodeURIComponent(industry)}`
     setLoading(true)
     fetch(url)
-      .then(r => r.json())
-      .then(d => setCases(d.cases ?? []))
-      .catch(() => setCases([]))
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.cases?.length) setCases(d.cases)
+        else if (industry === 'Todos') setCases(STATIC_CASES)
+        else setCases(STATIC_CASES.filter(c => c.industry === industry))
+      })
+      .catch(() => {
+        if (industry === 'Todos') setCases(STATIC_CASES)
+        else setCases(STATIC_CASES.filter(c => c.industry === industry))
+      })
       .finally(() => setLoading(false))
   }, [industry])
 

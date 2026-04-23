@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 
 const plans = [
   {
@@ -89,27 +89,27 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
-    <main className="min-h-screen bg-[#0a0f1e] text-white">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
-        <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm font-medium mb-6">
+        <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
           Precios transparentes
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
           Elegí el plan que escala con tu negocio
         </h1>
-        <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
           Sin contratos anuales forzados. Sin letra chica. Empezá hoy y escalá cuando lo necesites.
         </p>
 
         {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-4">
+        <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-xl">
           <button
             onClick={() => setBilling('monthly')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               billing === 'monthly'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Mensual
@@ -118,12 +118,12 @@ export default function PricingPage() {
             onClick={() => setBilling('annual')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
               billing === 'annual'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Anual
-            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs">
+            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-500 dark:text-green-400 text-xs font-medium">
               2 meses gratis
             </span>
           </button>
@@ -131,40 +131,40 @@ export default function PricingPage() {
       </div>
 
       {/* Plans */}
-      <div className="max-w-4xl mx-auto px-6 pb-20">
+      <div className="max-w-5xl mx-auto px-6 pb-20">
         <div className="grid md:grid-cols-3 gap-6 items-stretch">
           {plans.map((plan) => (
             <div
               key={plan.id}
               className={`relative rounded-2xl p-6 border transition-all flex flex-col ${
                 plan.highlight
-                  ? 'bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-500/10'
-                  : 'bg-[#111827] border-gray-700/50'
+                  ? 'bg-primary/5 border-primary/40 shadow-lg shadow-primary/10 ring-1 ring-primary/20'
+                  : 'bg-card border-border hover:border-primary/20'
               }`}
             >
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-semibold">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold whitespace-nowrap">
                   {plan.badge}
                 </div>
               )}
 
-              <h2 className="text-xl font-bold text-white mb-1">{plan.name}</h2>
-              <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
+              <h2 className="text-xl font-bold text-foreground mb-1">{plan.name}</h2>
+              <p className="text-muted-foreground text-sm mb-5">{plan.description}</p>
 
               <div className="mb-6">
                 {plan.id === 'enterprise' ? (
                   <div>
-                    <span className="text-4xl font-bold text-white">A cotizar</span>
-                    <p className="text-gray-400 text-sm mt-1">Precio según alcance del proyecto</p>
+                    <span className="text-4xl font-bold text-foreground">A cotizar</span>
+                    <p className="text-muted-foreground text-sm mt-1">Precio según alcance del proyecto</p>
                   </div>
                 ) : (
                   <div>
-                    <span className="text-4xl font-bold text-white">
+                    <span className="text-4xl font-bold text-foreground">
                       ${plan.price[billing].toLocaleString()}
                     </span>
-                    <span className="text-gray-400 text-sm ml-2">USD/mes</span>
+                    <span className="text-muted-foreground text-sm ml-1">USD/mes</span>
                     {billing === 'annual' && (
-                      <p className="text-green-400 text-xs mt-1">
+                      <p className="text-green-500 dark:text-green-400 text-xs mt-1">
                         Ahorrás ${((plan.price.monthly - plan.price.annual) * 12).toLocaleString()} al año
                       </p>
                     )}
@@ -174,8 +174,8 @@ export default function PricingPage() {
 
               <ul className="space-y-2.5 mb-6 flex-1">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-gray-300">
-                    <span className="text-green-400 mt-0.5 flex-shrink-0">✓</span>
+                  <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -185,8 +185,8 @@ export default function PricingPage() {
                 href={plan.id === 'enterprise' ? '/contact?type=enterprise' : `/register?plan=${plan.id}`}
                 className={`block w-full text-center py-3 rounded-xl font-semibold transition-all mt-auto ${
                   plan.highlight
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                    : 'bg-gray-700 hover:bg-gray-600 text-white'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-glow'
+                    : 'bg-muted text-foreground hover:bg-muted/80 border border-border'
                 }`}
               >
                 {plan.cta}
@@ -198,8 +198,8 @@ export default function PricingPage() {
         {/* Trust signals */}
         <div className="flex flex-wrap justify-center gap-8 mt-12 text-center">
           {['14 días de prueba gratis', 'Sin contrato de permanencia', 'Implementación incluida', 'Soporte en español'].map((item) => (
-            <div key={item} className="flex items-center gap-2 text-sm text-gray-400">
-              <span className="text-green-400">✓</span>
+            <div key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Check className="w-4 h-4 text-green-500" />
               {item}
             </div>
           ))}
@@ -207,20 +207,20 @@ export default function PricingPage() {
 
         {/* FAQ — accordion */}
         <div className="mt-20">
-          <h2 className="text-2xl font-bold text-center text-white mb-8">Preguntas frecuentes</h2>
+          <h2 className="text-2xl font-bold text-center text-foreground mb-8">Preguntas frecuentes</h2>
           <div className="max-w-2xl mx-auto space-y-3">
             {faqs.map(({ q, a }, i) => (
               <div
                 key={q}
-                className="bg-[#111827] border border-gray-700/50 rounded-xl overflow-hidden"
+                className="bg-card border border-border rounded-xl overflow-hidden"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-muted/50 transition-colors"
                 >
-                  <span className="font-semibold text-white text-sm">{q}</span>
+                  <span className="font-semibold text-foreground text-sm">{q}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${
                       openFaq === i ? 'rotate-180' : ''
                     }`}
                   />
@@ -231,7 +231,7 @@ export default function PricingPage() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="text-gray-400 text-sm px-5 pb-4 border-t border-gray-700/50 pt-3">
+                    <p className="text-muted-foreground text-sm px-5 pb-4 border-t border-border pt-3">
                       {a}
                     </p>
                   </div>
@@ -243,10 +243,10 @@ export default function PricingPage() {
 
         {/* CTA bottom */}
         <div className="mt-16 text-center">
-          <p className="text-gray-400 mb-4">¿No sabés qué plan te conviene?</p>
+          <p className="text-muted-foreground mb-4">¿No sabés qué plan te conviene?</p>
           <Link
             href="/contact?type=diagnostico"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border hover:border-primary/50 transition-all text-foreground font-medium"
           >
             Hablar con un asesor gratis
           </Link>

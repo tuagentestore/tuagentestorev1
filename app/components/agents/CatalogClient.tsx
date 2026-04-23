@@ -77,7 +77,16 @@ export default function CatalogClient() {
     setLoading(true)
     fetch('/api/agents')
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.agents?.length) setAgents(data.agents) })
+      .then(data => {
+        if (data?.agents?.length) {
+          // Merge: keep static agents not returned by API (e.g. Operations)
+          setAgents(prev => {
+            const apiSlugs = new Set(data.agents.map((a: Agent) => a.slug))
+            const missing = prev.filter(a => !apiSlugs.has(a.slug))
+            return [...data.agents, ...missing]
+          })
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])

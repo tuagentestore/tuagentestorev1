@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Sun, Moon, MessageCircle, User, X, Sparkles,
@@ -12,10 +13,12 @@ interface NavUser {
   name?: string
   email: string
   role: string
+  avatar_url?: string | null
 }
 
 function UserMenu({ user, onLogout }: { user: NavUser; onLogout: () => void }) {
   const [open, setOpen] = useState(false)
+  const [imgError, setImgError] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -27,14 +30,29 @@ function UserMenu({ user, onLogout }: { user: NavUser; onLogout: () => void }) {
   }, [])
 
   const initials = (user.name ?? user.email).slice(0, 2).toUpperCase()
+  const showPhoto = !!user.avatar_url && !imgError
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(p => !p)}
-        className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary hover:bg-primary/30 transition-colors"
+        className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all"
       >
-        {initials}
+        {showPhoto ? (
+          <Image
+            src={user.avatar_url!}
+            alt={user.name ?? user.email}
+            width={32}
+            height={32}
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+            unoptimized
+          />
+        ) : (
+          <span className="w-full h-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+            {initials}
+          </span>
+        )}
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50 py-1">

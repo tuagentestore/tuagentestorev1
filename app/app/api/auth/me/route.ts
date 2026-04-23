@@ -10,6 +10,7 @@ interface UserProfile {
   tenant_name: string
   plan: string
   subscription_status: string | null
+  avatar_url: string | null
 }
 
 export async function GET(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const user = await queryOne<UserProfile>(
-    `SELECT u.id, u.email, u.full_name, u.role, u.tenant_id,
+    `SELECT u.id, u.email, u.full_name, u.role, u.tenant_id, u.avatar_url,
             t.name AS tenant_name, t.plan,
             s.status AS subscription_status
      FROM users u

@@ -69,28 +69,36 @@ function SidebarContent({
         <Link href="/" onClick={onClose} className="flex items-center">
           {collapsed ? (
             /* Icon only when collapsed */
-            <div className="bg-white rounded-lg p-1 w-9 h-9 flex items-center justify-center overflow-hidden">
-              <Image
-                src="/favicon.png"
-                alt="TuAgente Store"
-                width={36}
-                height={36}
-                className="object-contain w-7 h-7"
-                priority
-              />
-            </div>
+            <Image
+              src="/favicon.png"
+              alt="TuAgente Store"
+              width={36}
+              height={36}
+              className="object-contain w-9 h-9"
+              priority
+            />
           ) : (
-            /* Full logo when expanded */
-            <div className="bg-white rounded-xl overflow-hidden" style={{ width: 128, height: 43 }}>
+            /* Full logo when expanded — light/dark variants */
+            <>
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
-                width={512}
-                height={170}
-                className="w-full h-full object-contain"
+                width={128}
+                height={43}
+                className="object-contain dark:hidden"
+                style={{ height: 43 }}
                 priority
               />
-            </div>
+              <Image
+                src="/logo-dark.png"
+                alt="TuAgente Store"
+                width={128}
+                height={43}
+                className="object-contain hidden dark:block"
+                style={{ height: 43 }}
+                priority
+              />
+            </>
           )}
         </Link>
       </div>
@@ -243,16 +251,8 @@ export default function Sidebar() {
 
         {/* Logo centered */}
         <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-          <div className="bg-white rounded-lg overflow-hidden" style={{ width: 108, height: 36 }}>
-            <Image
-              src="/logo.png"
-              alt="TuAgente Store"
-              width={512}
-              height={170}
-              className="w-full h-full object-contain"
-              priority
-            />
-          </div>
+          <Image src="/logo.png" alt="TuAgente Store" width={108} height={36} className="object-contain dark:hidden" style={{ height: 36 }} priority />
+          <Image src="/logo-dark.png" alt="TuAgente Store" width={108} height={36} className="object-contain hidden dark:block" style={{ height: 36 }} priority />
         </Link>
 
         <div className="w-10" />

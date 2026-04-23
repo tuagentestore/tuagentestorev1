@@ -1,6 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, Youtube, Linkedin, Twitter } from 'lucide-react'
+import { Instagram, Youtube, Linkedin } from 'lucide-react'
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -32,7 +40,7 @@ export default function Footer() {
   const socials = [
     { icon: Instagram, href: 'https://www.instagram.com/ai.tuagentestore', label: 'Instagram' },
     { icon: Linkedin, href: 'https://www.linkedin.com/in/tu-agente-store-4704673b8', label: 'LinkedIn' },
-    { icon: Twitter, href: 'https://x.com/tuagentestore', label: 'X' },
+    { icon: XIcon, href: 'https://x.com/tuagentestore', label: 'X' },
     { icon: Youtube, href: 'https://youtube.com/@tuagentestore', label: 'YouTube' },
   ]
 
@@ -44,26 +52,22 @@ export default function Footer() {
           {/* Brand col */}
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center mb-4 group">
-              <div className="overflow-hidden dark:hidden w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
-                <Image
-                  src="/logo.png"
-                  alt="TuAgente Store"
-                  width={200}
-                  height={133}
-                  className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
-                  style={{ marginTop: -13, marginLeft: -13, filter: 'brightness(0.65) contrast(1.25)' }}
-                />
-              </div>
-              <div className="overflow-hidden hidden dark:block w-[150px] h-[67px] sm:w-[200px] sm:h-[90px]">
-                <Image
-                  src="/logo-dark.png"
-                  alt="TuAgente Store"
-                  width={200}
-                  height={133}
-                  className="w-[150px] sm:w-[200px] transition-opacity group-hover:opacity-80"
-                  style={{ marginTop: -13, marginLeft: -13 }}
-                />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="TuAgente Store"
+                width={160}
+                height={54}
+                className="object-contain dark:hidden transition-opacity group-hover:opacity-80"
+                style={{ height: 54 }}
+              />
+              <Image
+                src="/logo-dark.png"
+                alt="TuAgente Store"
+                width={160}
+                height={54}
+                className="object-contain hidden dark:block transition-opacity group-hover:opacity-80"
+                style={{ height: 54 }}
+              />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
               El marketplace de agentes IA listos para automatizar tu negocio.
