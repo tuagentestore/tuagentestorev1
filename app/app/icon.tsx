@@ -22,7 +22,7 @@ export default function Icon() {
         }}
       >
         {/* Scale up by 1.35x to fill transparent padding, making icon appear larger in browser tabs */}
-        <img src={src} style={{ width: 690, height: 690 }} />
+        <img src={src} style={{ width: 900, height: 900 }} />
       </div>
     ),
     { width: 512, height: 512 },

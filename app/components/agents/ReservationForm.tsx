@@ -6,16 +6,18 @@ interface Props {
   agentId?: string
   agentSlug?: string
   agentName: string
+  pricingBasic?: number
+  pricingPro?: number
 }
 
 const INDUSTRIES = ['Seguros', 'Inmobiliaria', 'Legal', 'Tecnología', 'Salud', 'Retail', 'E-commerce', 'Educación', 'Otro']
-const PLANS = [
-  { value: 'starter', label: 'Básico ($397/mes)' },
-  { value: 'pro', label: 'Pro ($597/mes)' },
-  { value: 'enterprise', label: 'Enterprise (a medida)' },
-]
 
-export default function ReservationForm({ agentId, agentSlug, agentName }: Props) {
+export default function ReservationForm({ agentId, agentSlug, agentName, pricingBasic = 397, pricingPro = 597 }: Props) {
+  const PLANS = [
+    { value: 'starter', label: `Básico ($${pricingBasic}/mes)` },
+    { value: 'pro', label: `Pro ($${pricingPro}/mes)` },
+    { value: 'enterprise', label: 'Enterprise (a medida)' },
+  ]
   const [form, setForm] = useState({
     user_name: '',
     user_email: '',

@@ -392,7 +392,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
             )}
 
             {activeTab === 'reserve' && (
-              <ReservationForm agentId={agent.id} agentSlug={slug} agentName={agent.name} />
+              <ReservationForm agentId={agent.id} agentSlug={slug} agentName={agent.name} pricingBasic={agent.pricing_basic} pricingPro={agent.pricing_pro} />
             )}
           </div>
 

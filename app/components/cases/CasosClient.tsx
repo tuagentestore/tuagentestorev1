@@ -69,7 +69,7 @@ function CaseCard({ c }: { c: Case }) {
   const color = INDUSTRY_COLORS[c.industry] ?? 'from-blue-500 to-indigo-500'
   const ba = BEFORE_AFTER[c.slug]
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col shrink-0" style={{ width: 340 }}>
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col shrink-0" style={{ width: 340, height: 490 }}>
       {/* Metric banner */}
       <div className={`bg-gradient-to-r ${color} p-5`}>
         <div className="flex items-start justify-between">
@@ -92,11 +92,11 @@ function CaseCard({ c }: { c: Case }) {
           <div className="space-y-2 mb-4 flex-1">
             <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
               <p className="text-xs font-semibold text-red-400 mb-1">Antes</p>
-              <p className="text-sm text-muted-foreground">{ba.before}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2">{ba.before}</p>
             </div>
             <div className="p-3 bg-green-500/5 border border-green-500/10 rounded-xl">
               <p className="text-xs font-semibold text-green-400 mb-1">Después</p>
-              <p className="text-sm text-foreground">{ba.after}</p>
+              <p className="text-sm text-foreground line-clamp-2">{ba.after}</p>
             </div>
           </div>
         ) : (
@@ -124,7 +124,7 @@ function CaseCard({ c }: { c: Case }) {
             {ba && (
               <Link
                 href="/contact?type=demo"
-                className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:shadow-glow transition-all"
+                className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-xs font-semibold hover:shadow-glow transition-all whitespace-nowrap"
               >
                 Quiero este sistema
               </Link>

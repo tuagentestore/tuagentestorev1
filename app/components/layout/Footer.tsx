@@ -55,18 +55,18 @@ export default function Footer() {
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
-                width={240}
-                height={82}
+                width={280}
+                height={110}
                 className="object-contain dark:hidden transition-opacity group-hover:opacity-80"
-                style={{ height: 82, width: 'auto' }}
+                style={{ height: 110, width: 'auto' }}
               />
               <Image
                 src="/logo-dark.png"
                 alt="TuAgente Store"
-                width={240}
-                height={82}
+                width={280}
+                height={110}
                 className="object-contain hidden dark:block transition-opacity group-hover:opacity-80"
-                style={{ height: 82, width: 'auto' }}
+                style={{ height: 110, width: 'auto' }}
               />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
