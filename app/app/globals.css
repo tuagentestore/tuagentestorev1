@@ -154,6 +154,13 @@
 }
 .animate-marquee-cards:hover { animation-play-state: paused; }
 
+/* Cases carousel */
+.animate-marquee-cases {
+  animation: marquee 50s linear infinite;
+  will-change: transform;
+}
+.animate-marquee-cases:hover { animation-play-state: paused; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgb(var(--background)); }

@@ -69,7 +69,7 @@ function CaseCard({ c }: { c: Case }) {
   const color = INDUSTRY_COLORS[c.industry] ?? 'from-blue-500 to-indigo-500'
   const ba = BEFORE_AFTER[c.slug]
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col shrink-0" style={{ width: 340 }}>
       {/* Metric banner */}
       <div className={`bg-gradient-to-r ${color} p-5`}>
         <div className="flex items-start justify-between">
@@ -155,9 +155,20 @@ export default function CasosClient() {
     fetch(url)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.cases?.length) setCases(d.cases)
-        else if (industry === 'Todos') setCases(STATIC_CASES)
-        else setCases(STATIC_CASES.filter(c => c.industry === industry))
+        if (d?.cases?.length) {
+          // Merge: API cases take priority, missing static cases are appended
+          setCases(prev => {
+            const apiSlugs = new Set(d.cases.map((c: Case) => c.slug))
+            const missing = STATIC_CASES.filter(c =>
+              !apiSlugs.has(c.slug) &&
+              (industry === 'Todos' || c.industry === industry)
+            )
+            return [...d.cases, ...missing]
+          })
+        } else {
+          if (industry === 'Todos') setCases(STATIC_CASES)
+          else setCases(STATIC_CASES.filter(c => c.industry === industry))
+        }
       })
       .catch(() => {
         if (industry === 'Todos') setCases(STATIC_CASES)
@@ -165,6 +176,9 @@ export default function CasosClient() {
       })
       .finally(() => setLoading(false))
   }, [industry])
+
+  // Duplicate once for infinite scroll (-50% marquee technique)
+  const carouselCases = cases.length > 0 ? [...cases, ...cases] : []
 
   return (
     <main className="min-h-screen bg-background">
@@ -186,7 +200,7 @@ export default function CasosClient() {
           <div className="flex flex-wrap justify-center gap-8 mt-10">
             {[
               { label: 'Horas ahorradas/mes', value: '500+' },
-              { label: 'Empresas transformadas', value: '50+' },
+              { label: 'Casos de estudio', value: '50+' },
               { label: 'Satisfacción promedio', value: '4.9/5' },
               { label: 'ROI promedio', value: '3x' },
             ].map(s => (
@@ -199,9 +213,9 @@ export default function CasosClient() {
         </div>
       </section>
 
-      {/* Filters + grid */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="flex items-center gap-3 mb-8 flex-wrap">
+      {/* Filters */}
+      <div className="max-w-6xl mx-auto px-4 pt-10 pb-4">
+        <div className="flex items-center gap-3 flex-wrap">
           <Filter className="w-4 h-4 text-muted-foreground" />
           {INDUSTRIES.map(ind => (
             <button
@@ -217,11 +231,14 @@ export default function CasosClient() {
             </button>
           ))}
         </div>
+      </div>
 
+      {/* Infinite carousel */}
+      <div className="py-8">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex gap-6 px-4 max-w-6xl mx-auto">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-card border border-border rounded-2xl h-80 animate-pulse" />
+              <div key={i} className="bg-card border border-border rounded-2xl h-80 animate-pulse shrink-0" style={{ width: 340 }} />
             ))}
           </div>
         ) : cases.length === 0 ? (
@@ -231,14 +248,34 @@ export default function CasosClient() {
               Ver todos los casos
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        ) : cases.length <= 2 ? (
+          /* If few cases, show simple grid */
+          <div className="flex gap-6 justify-center flex-wrap px-4 max-w-6xl mx-auto">
             {cases.map(c => <CaseCard key={c.id} c={c} />)}
           </div>
+        ) : (
+          /* Infinite carousel */
+          <div
+            className="relative w-full overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+            }}
+          >
+            <div className="flex animate-marquee-cases" style={{ width: 'max-content' }}>
+              {carouselCases.map((c, i) => (
+                <div key={`${c.id}-${i}`} className="mx-3">
+                  <CaseCard c={c} />
+                </div>
+              ))}
+            </div>
+          </div>
         )}
+      </div>
 
-        {/* CTA */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-primary/20 rounded-2xl p-8 text-center">
+      {/* CTA */}
+      <div className="max-w-6xl mx-auto px-4 pb-16">
+        <div className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-primary/20 rounded-2xl p-8 text-center">
           <h2 className="text-2xl font-bold text-foreground mb-2">Si querés un caso como este, no necesitás empezar desde cero</h2>
           <p className="text-muted-foreground mb-6">Elegimos el agente correcto, definimos el stack y te mostramos una ruta clara de activación.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -257,6 +294,7 @@ export default function CasosClient() {
           </div>
         </div>
       </div>
+
     </main>
   )
 }

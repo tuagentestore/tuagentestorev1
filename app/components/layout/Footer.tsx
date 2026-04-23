@@ -51,22 +51,22 @@ export default function Footer() {
 
           {/* Brand col */}
           <div className="md:col-span-2">
-            <Link href="/" className="inline-flex items-center mb-4 group">
+            <Link href="/" className="flex items-start mb-5 group w-fit">
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
-                width={160}
-                height={54}
+                width={240}
+                height={82}
                 className="object-contain dark:hidden transition-opacity group-hover:opacity-80"
-                style={{ height: 54 }}
+                style={{ height: 82, width: 'auto' }}
               />
               <Image
                 src="/logo-dark.png"
                 alt="TuAgente Store"
-                width={160}
-                height={54}
+                width={240}
+                height={82}
                 className="object-contain hidden dark:block transition-opacity group-hover:opacity-80"
-                style={{ height: 54 }}
+                style={{ height: 82, width: 'auto' }}
               />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">

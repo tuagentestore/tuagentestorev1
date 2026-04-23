@@ -18,9 +18,11 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
-        <img src={src} style={{ width: 512, height: 512 }} />
+        {/* Scale up by 1.35x to fill transparent padding, making icon appear larger in browser tabs */}
+        <img src={src} style={{ width: 690, height: 690 }} />
       </div>
     ),
     { width: 512, height: 512 },

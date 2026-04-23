@@ -65,37 +65,48 @@ function SidebarContent({
     <div className="flex flex-col h-full">
 
       {/* Logo */}
-      <div className={`border-b border-border shrink-0 flex items-center ${collapsed ? 'justify-center py-3 px-2' : 'px-4 py-3'}`}>
+      <div className={`border-b border-border shrink-0 flex items-center ${collapsed ? 'justify-center py-3 px-2' : 'px-4 py-4'}`}>
         <Link href="/" onClick={onClose} className="flex items-center">
           {collapsed ? (
-            /* Icon only when collapsed */
-            <Image
-              src="/favicon.png"
-              alt="TuAgente Store"
-              width={36}
-              height={36}
-              className="object-contain w-9 h-9"
-              priority
-            />
+            /* Icon only when collapsed — light: normal, dark: brightened */
+            <>
+              <Image
+                src="/favicon.png"
+                alt="TuAgente Store"
+                width={44}
+                height={44}
+                className="object-contain w-11 h-11 dark:hidden"
+                priority
+              />
+              <Image
+                src="/favicon.png"
+                alt="TuAgente Store"
+                width={44}
+                height={44}
+                className="object-contain w-11 h-11 hidden dark:block"
+                style={{ filter: 'brightness(3) saturate(0.8)' }}
+                priority
+              />
+            </>
           ) : (
-            /* Full logo when expanded — light/dark variants */
+            /* Full logo when expanded — light/dark variants, much bigger */
             <>
               <Image
                 src="/logo.png"
                 alt="TuAgente Store"
-                width={128}
-                height={43}
+                width={190}
+                height={64}
                 className="object-contain dark:hidden"
-                style={{ height: 43 }}
+                style={{ height: 64, width: 'auto' }}
                 priority
               />
               <Image
                 src="/logo-dark.png"
                 alt="TuAgente Store"
-                width={128}
-                height={43}
+                width={190}
+                height={64}
                 className="object-contain hidden dark:block"
-                style={{ height: 43 }}
+                style={{ height: 64, width: 'auto' }}
                 priority
               />
             </>
@@ -251,8 +262,8 @@ export default function Sidebar() {
 
         {/* Logo centered */}
         <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-          <Image src="/logo.png" alt="TuAgente Store" width={108} height={36} className="object-contain dark:hidden" style={{ height: 36 }} priority />
-          <Image src="/logo-dark.png" alt="TuAgente Store" width={108} height={36} className="object-contain hidden dark:block" style={{ height: 36 }} priority />
+          <Image src="/logo.png" alt="TuAgente Store" width={140} height={46} className="object-contain dark:hidden" style={{ height: 46, width: 'auto' }} priority />
+          <Image src="/logo-dark.png" alt="TuAgente Store" width={140} height={46} className="object-contain hidden dark:block" style={{ height: 46, width: 'auto' }} priority />
         </Link>
 
         <div className="w-10" />

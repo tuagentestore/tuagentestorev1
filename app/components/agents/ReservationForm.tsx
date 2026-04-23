@@ -25,6 +25,7 @@ export default function ReservationForm({ agentId, agentSlug, agentName }: Props
     use_case: '',
     plan_interest: 'starter',
     preferred_date: '',
+    preferred_time: '',
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -196,18 +197,41 @@ export default function ReservationForm({ agentId, agentSlug, agentName }: Props
           />
         </div>
 
-        {/* Preferred date */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">
-            Fecha preferida para la llamada
-          </label>
-          <input
-            type="date"
-            value={form.preferred_date}
-            onChange={e => set('preferred_date', e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-            className="input-field"
-          />
+        {/* Preferred date + time */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Fecha preferida para la llamada
+            </label>
+            <input
+              type="date"
+              value={form.preferred_date}
+              onChange={e => set('preferred_date', e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Franja horaria preferida
+            </label>
+            <select
+              value={form.preferred_time}
+              onChange={e => set('preferred_time', e.target.value)}
+              className="input-field"
+            >
+              <option value="">Seleccioná un horario</option>
+              <option value="09:00">09:00 – 10:00</option>
+              <option value="10:00">10:00 – 11:00</option>
+              <option value="11:00">11:00 – 12:00</option>
+              <option value="12:00">12:00 – 13:00</option>
+              <option value="13:00">13:00 – 14:00</option>
+              <option value="14:00">14:00 – 15:00</option>
+              <option value="15:00">15:00 – 16:00</option>
+              <option value="16:00">16:00 – 17:00</option>
+              <option value="17:00">17:00 – 18:00</option>
+            </select>
+          </div>
         </div>
 
         {error && (
