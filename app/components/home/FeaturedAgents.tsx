@@ -69,7 +69,7 @@ const FEATURED = [
     name: 'Operations AI Agent',
     tagline: 'Automatiza procesos internos, reportes y flujos operativos',
     category: 'Operaciones',
-    price: 447,
+    price: 397,
     color: 'from-sky-500 to-cyan-600',
     image: '/agents/operations-ai-agent.png',
     capabilities: ['Automatización de flujos', 'Reportes automáticos', 'Gestión de tareas'],

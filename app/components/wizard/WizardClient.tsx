@@ -363,7 +363,7 @@ export default function WizardClient() {
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Elegí tu agente ideal</h1>
           <p className="text-muted-foreground">
-            {user ? `Hola, ${user.name ?? user.email.split('@')[0].replace(/^./, c => c.toUpperCase())} — ` : ''}
+            {user ? `Hola${user.name ? `, ${user.name.split(' ')[0]}` : ''} — ` : ''}
             5 preguntas para encontrar la automatización perfecta para tu negocio.
           </p>
         </div>

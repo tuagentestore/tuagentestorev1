@@ -96,7 +96,7 @@ export default function CasosPreview() {
       >
         <div className="flex animate-marquee-cases" style={{ width: 'max-content' }}>
           {all.map((c, i) => (
-            <div key={`${c.slug}-${i}`} className="mx-3">
+            <div key={`${c.slug}-${i}`} className="mx-3" aria-hidden={i >= CASOS.length ? 'true' : undefined}>
               <Link
                 href={`/casos/${c.slug}`}
                 className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all flex flex-col shrink-0 group"

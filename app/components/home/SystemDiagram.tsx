@@ -8,12 +8,12 @@ import { useGSAP } from '@gsap/react'
 // for the same signal-flow effect without the paid plugin.
 
 const INTEGRATIONS = [
-  { id: 'whatsapp', label: 'WhatsApp', color: '#25D366', angle: -90 },
-  { id: 'hubspot',  label: 'HubSpot',  color: '#FF7A59', angle: -30 },
-  { id: 'shopify',  label: 'Shopify',  color: '#96BF48', angle: 30 },
-  { id: 'calendar', label: 'Calendar', color: '#4285F4', angle: 90 },
-  { id: 'n8n',      label: 'n8n',      color: '#EA4B71', angle: 150 },
-  { id: 'zapier',   label: 'Zapier',   color: '#FF4A00', angle: -150 },
+  { id: 'whatsapp', label: 'WhatsApp', color: '#334155', angle: -90 },
+  { id: 'hubspot',  label: 'HubSpot',  color: '#334155', angle: -30 },
+  { id: 'shopify',  label: 'Shopify',  color: '#334155', angle: 30 },
+  { id: 'calendar', label: 'Calendar', color: '#334155', angle: 90 },
+  { id: 'n8n',      label: 'n8n',      color: '#334155', angle: 150 },
+  { id: 'zapier',   label: 'Zapier',   color: '#334155', angle: -150 },
 ]
 
 const CX = 200

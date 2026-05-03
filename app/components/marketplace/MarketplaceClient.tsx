@@ -236,8 +236,8 @@ export default function MarketplaceClient({ initialAgents }: { initialAgents?: A
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <span className="px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium">
-                        #{i + 1} Trending
+                      <span className="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
+                        Top {i + 1}
                       </span>
                       {agent.demo_available && (
                         <span className="flex items-center gap-1 text-xs text-green-400">
@@ -382,7 +382,7 @@ export default function MarketplaceClient({ initialAgents }: { initialAgents?: A
                         : 'bg-transparent border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
                     }`}
                   >
-                    {isComparing ? '✓ En comparación' : '+ Agregar a comparar'}
+                    {isComparing ? '✓ En comparación' : '+ Comparar'}
                   </button>
                 </div>
               )

@@ -15,7 +15,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 const ROTATING_PAIN = ['responder tarde', 'perder leads', 'sin seguimiento', 'operar sin datos']
 
 const LIVE_STATS = [
-  { icon: Bot, label: 'Agentes listos', value: '6+' },
+  { icon: Bot, label: 'Agentes listos', value: '7+' },
   { icon: TrendingUp, label: 'Setup en 24h', value: '24h' },
   { icon: Shield, label: 'Disponibilidad', value: '24/7' },
   { icon: Plug, label: 'Integración real', value: 'WA+CRM' },
@@ -34,7 +34,7 @@ export default function HeroPrimary() {
         setWordIndex(i => (i + 1) % ROTATING_PAIN.length)
         setVisible(true)
       }, 300)
-    }, 2500)
+    }, 4000)
     return () => clearInterval(interval)
   }, [])
 
@@ -65,7 +65,7 @@ export default function HeroPrimary() {
   }, { scope: containerRef })
 
   return (
-    <section ref={containerRef} className="relative overflow-hidden bg-background min-h-[92vh] flex items-center">
+    <section ref={containerRef} className="relative overflow-hidden bg-background min-h-[80vh] sm:min-h-[92vh] flex items-center">
       {/* Background */}
       <div className="absolute inset-0 bg-grid opacity-100 pointer-events-none" />
       <div className="hero-orb-1 glow-orb w-[600px] h-[600px] bg-blue-600/8 -top-40 -left-40" />
@@ -87,7 +87,7 @@ export default function HeroPrimary() {
             <br />
             El problema es{' '}
             <span
-              className="text-gradient-hero inline-block transition-all duration-300"
+              className="text-gradient-hero inline-block transition-all duration-500"
               style={{
                 opacity: visible ? 1 : 0,
                 transform: visible ? 'translateY(0)' : 'translateY(8px)',

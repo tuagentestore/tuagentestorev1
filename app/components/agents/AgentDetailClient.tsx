@@ -149,9 +149,10 @@ const QUE_NECESITA: Record<string, string[]> = {
 }
 
 export default function AgentDetailClient({ slug }: { slug: string }) {
-  const [agent, setAgent] = useState<Agent | null>(null)
+  const staticData = STATIC[slug] ? { id: slug, slug, ...STATIC[slug] } as Agent : null
+  const [agent, setAgent] = useState<Agent | null>(staticData)
   const [activeTab, setActiveTab] = useState<'overview' | 'demo' | 'reserve'>('overview')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!staticData)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -407,7 +408,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
                 {/* Basic */}
                 <div className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="font-semibold text-foreground">Básico</span>
+                    <span className="font-semibold text-foreground">Starter</span>
                     <div className="text-right">
                       <span className="text-xl font-bold text-foreground">${agent.pricing_basic}</span>
                       <span className="text-xs text-muted-foreground">/mes</span>
@@ -422,7 +423,7 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
                     <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded-full">Popular</span>
                   </div>
                   <div className="flex justify-between items-start mb-2">
-                    <span className="font-semibold text-foreground">Pro</span>
+                    <span className="font-semibold text-foreground">Professional</span>
                     <div className="text-right">
                       <span className="text-xl font-bold text-primary">${agent.pricing_pro}</span>
                       <span className="text-xs text-muted-foreground">/mes</span>
