@@ -1,20 +1,20 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
-let anthropicClient: Anthropic | undefined
+let client: OpenAI | undefined
 
-function getClient(): Anthropic {
-  if (!anthropicClient) {
-    anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+function getClient(): OpenAI {
+  if (!client) {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   }
-  return anthropicClient
+  return client
 }
 
 export type ModelTier = 'fast' | 'balanced' | 'premium'
 
 const MODEL_MAP: Record<ModelTier, string> = {
-  fast: 'claude-haiku-4-5',
-  balanced: 'claude-sonnet-4-6',
-  premium: 'claude-opus-4-7',
+  fast:     process.env.OPENAI_DEFAULT_MODEL  ?? 'gpt-4o-mini',
+  balanced: process.env.OPENAI_PREMIUM_MODEL  ?? 'gpt-4o',
+  premium:  process.env.OPENAI_PREMIUM_MODEL  ?? 'gpt-4o',
 }
 
 export interface AIMessage {
@@ -43,35 +43,29 @@ export async function chat(
     cacheSystem?: boolean
   } = {}
 ): Promise<AIResult> {
-  const { tier = 'balanced', maxTokens = 500, cacheSystem = true } = options
-  const client = getClient()
+  const { tier = 'balanced', maxTokens = 500 } = options
   const model = MODEL_MAP[tier]
 
-  const response = await client.messages.create({
+  const response = await getClient().chat.completions.create({
     model,
     max_tokens: maxTokens,
-    system: cacheSystem
-      ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
-      : systemPrompt,
-    messages,
-  }, {
-    headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
   })
 
-  const content = response.content[0]?.type === 'text' ? response.content[0].text : ''
-  const usage = response.usage as Anthropic.Usage & {
-    cache_read_input_tokens?: number
-    cache_creation_input_tokens?: number
-  }
+  const content = response.choices[0]?.message?.content ?? ''
+  const usage = response.usage
 
   return {
     content,
     tokens: {
-      input: usage.input_tokens,
-      output: usage.output_tokens,
-      cacheRead: usage.cache_read_input_tokens ?? 0,
-      cacheWrite: usage.cache_creation_input_tokens ?? 0,
-      total: usage.input_tokens + usage.output_tokens,
+      input:      usage?.prompt_tokens     ?? 0,
+      output:     usage?.completion_tokens ?? 0,
+      cacheRead:  0,
+      cacheWrite: 0,
+      total:      usage?.total_tokens      ?? 0,
     },
     model,
   }
@@ -86,30 +80,24 @@ export async function chatStream(
     cacheSystem?: boolean
   } = {}
 ): Promise<ReadableStream<string>> {
-  const { tier = 'balanced', maxTokens = 500, cacheSystem = true } = options
-  const client = getClient()
+  const { tier = 'balanced', maxTokens = 500 } = options
   const model = MODEL_MAP[tier]
 
-  const stream = await client.messages.stream({
+  const stream = await getClient().chat.completions.create({
     model,
     max_tokens: maxTokens,
-    system: cacheSystem
-      ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
-      : systemPrompt,
-    messages,
-  }, {
-    headers: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
+    stream: true,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
   })
 
   return new ReadableStream<string>({
     async start(controller) {
-      for await (const event of stream) {
-        if (
-          event.type === 'content_block_delta' &&
-          event.delta.type === 'text_delta'
-        ) {
-          controller.enqueue(event.delta.text)
-        }
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content
+        if (text) controller.enqueue(text)
       }
       controller.close()
     },

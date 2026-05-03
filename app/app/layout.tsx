@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import dynamic from 'next/dynamic'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
 import SidebarLayout from '@/components/layout/SidebarLayout'
@@ -8,17 +7,13 @@ import TopBar from '@/components/layout/TopBar'
 import Footer from '@/components/layout/Footer'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 import WhatsAppButton from '@/components/layout/WhatsAppButton'
+import SalesAgentWidget from '@/components/chat/SalesAgentWidgetLoader'
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 })
-
-const SalesAgentWidget = dynamic(
-  () => import('@/components/chat/SalesAgentWidget'),
-  { ssr: false }
-)
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tuagentestore.com'
 
