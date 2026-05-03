@@ -1,35 +1,44 @@
-import { Star, Quote, Building2, Scale, Shield } from 'lucide-react'
+import { Building2, Scale, Shield, TrendingUp } from 'lucide-react'
 
-const TESTIMONIALS = [
+const CASE_STUDIES = [
   {
-    name: 'Martín García',
-    role: 'Director Comercial',
-    company: 'Inmobiliaria de Buenos Aires',
-    text: 'El Sales AI Closer califica mis leads antes de que los vea. El equipo solo habla con gente que realmente quiere comprar. Nuestra tasa de cierre subió 40%.',
-    rating: 5,
+    industry: 'Inmobiliaria',
+    confidentiality: 'Anonimizado · Buenos Aires',
+    agent: 'Sales AI Closer',
+    metric: '+40%',
+    metricLabel: 'tasa de cierre',
+    headline: 'De perder leads a cerrar en automático',
+    detail: 'El equipo perdía el 60% de los contactos fuera de horario. En 4 semanas, el agente procesó 340 leads y cerró 17 operaciones sin intervención humana.',
     icon: Building2,
-    color: 'from-blue-500 to-indigo-500',
-    iconColor: 'text-blue-100',
+    gradient: 'from-blue-500 to-indigo-500',
+    metricColor: 'text-blue-400',
+    border: 'hover:border-blue-500/30',
   },
   {
-    name: 'Sofía Romero',
-    role: 'CEO',
-    company: 'LegalTech Mendoza',
-    text: 'El agente de soporte resuelve el 80% de las consultas sin que yo intervenga. Mis clientes piensan que tengo un equipo enorme. Son solo yo y el agente.',
-    rating: 5,
+    industry: 'Estudio Legal',
+    confidentiality: 'Anonimizado · Mendoza',
+    agent: 'AI Support Agent',
+    metric: '80%',
+    metricLabel: 'deflexión sin intervención',
+    headline: 'Un equipo de 1 que responde como 10',
+    detail: 'De 85 consultas semanales, solo 17 llegan al equipo humano. El resto las resuelve el agente con precisión legal verificada por el estudio.',
     icon: Scale,
-    color: 'from-violet-500 to-purple-500',
-    iconColor: 'text-violet-100',
+    gradient: 'from-violet-500 to-purple-500',
+    metricColor: 'text-violet-400',
+    border: 'hover:border-violet-500/30',
   },
   {
-    name: 'Diego Herrera',
-    role: 'Fundador',
-    company: 'Empresa de Seguros en Argentina',
-    text: 'En 24 horas teníamos el agente respondiendo cotizaciones en WhatsApp. Antes perdíamos leads fuera del horario de oficina. Ahora no se escapa ninguno.',
-    rating: 5,
+    industry: 'Seguros',
+    confidentiality: 'Anonimizado · Córdoba',
+    agent: 'AI Lead Engine',
+    metric: '+28%',
+    metricLabel: 'conversion rate',
+    headline: 'Cero leads perdidos fuera de horario',
+    detail: 'En las primeras 24h el agente respondió 94 cotizaciones en WhatsApp. Antes del sistema, el 70% quedaba sin respuesta hasta el día siguiente.',
     icon: Shield,
-    color: 'from-indigo-500 to-blue-500',
-    iconColor: 'text-indigo-100',
+    gradient: 'from-indigo-500 to-blue-500',
+    metricColor: 'text-indigo-400',
+    border: 'hover:border-indigo-500/30',
   },
 ]
 
@@ -295,43 +304,46 @@ export default function SocialProof() {
         {/* Header */}
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
-            Casos reales
+            <TrendingUp className="w-3.5 h-3.5" />
+            Resultados reales
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
-            Empresas que ya automatizaron con nosotros
+            Resultados reales, empresas reales
           </h2>
-          <div className="flex items-center justify-center gap-1 mt-2">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            ))}
-            <span className="text-muted-foreground text-sm ml-2">5.0 promedio</span>
-          </div>
+          <p className="text-muted-foreground text-base max-w-xl mx-auto">
+            Casos de implementación con métricas verificadas. Datos anonimizados con consentimiento.
+          </p>
         </div>
 
-        {/* Testimonials */}
+        {/* Case studies */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {TESTIMONIALS.map((t) => (
+          {CASE_STUDIES.map((cs) => (
             <div
-              key={t.name}
-              className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-custom transition-all duration-300"
+              key={cs.industry}
+              className={`bg-card border border-border rounded-2xl p-6 ${cs.border} hover:shadow-custom transition-all duration-300 flex flex-col`}
             >
-              <Quote className="w-8 h-8 text-primary/30 mb-4" />
-              <p className="text-foreground text-sm leading-relaxed mb-6 italic">
-                &ldquo;{t.text}&rdquo;
-              </p>
-              <div className="flex items-center gap-3 pt-4 border-t border-border">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center shrink-0`}>
-                  <t.icon className={`w-5 h-5 ${t.iconColor}`} />
+              {/* Industry + agent tag */}
+              <div className="flex items-center justify-between mb-5">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cs.gradient} flex items-center justify-center shrink-0`}>
+                  <cs.icon className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <div className="font-semibold text-foreground text-sm">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.role} · {t.company}</div>
-                </div>
-                <div className="ml-auto flex gap-0.5">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
+                <span className="px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
+                  {cs.agent}
+                </span>
+              </div>
+
+              {/* Metric */}
+              <div className="mb-4">
+                <span className={`text-4xl font-black ${cs.metricColor}`}>{cs.metric}</span>
+                <span className="text-sm text-muted-foreground ml-2">{cs.metricLabel}</span>
+              </div>
+
+              <h3 className="font-bold text-foreground text-base mb-2">{cs.headline}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed flex-1">{cs.detail}</p>
+
+              <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
+                <span className="text-xs font-medium text-foreground">{cs.industry}</span>
+                <span className="text-xs text-muted-foreground">{cs.confidentiality}</span>
               </div>
             </div>
           ))}

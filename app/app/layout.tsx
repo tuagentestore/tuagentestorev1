@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
 import SidebarLayout from '@/components/layout/SidebarLayout'
@@ -6,7 +8,17 @@ import TopBar from '@/components/layout/TopBar'
 import Footer from '@/components/layout/Footer'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 import WhatsAppButton from '@/components/layout/WhatsAppButton'
-import SalesAgentWidget from '@/components/chat/SalesAgentWidget'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const SalesAgentWidget = dynamic(
+  () => import('@/components/chat/SalesAgentWidget'),
+  { ssr: false }
+)
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tuagentestore.com'
 
@@ -61,14 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `try{var t=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',t!=='light')}catch(e){}`,
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body>
+      <body className={inter.variable}>
         <ThemeProvider>
           <SidebarLayout>
             <Sidebar />

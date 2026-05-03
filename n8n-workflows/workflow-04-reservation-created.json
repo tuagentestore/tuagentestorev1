@@ -18,18 +18,22 @@
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
             {
-              "value1": "={{ $request.headers['x-webhook-secret'] }}",
-              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+              "id": "secret-check",
+              "leftValue": "={{ $json.headers['x-webhook-secret'] }}",
+              "rightValue": "={{ $env.WEBHOOK_SECRET_INTERNAL }}",
+              "operator": { "type": "string", "operation": "equals" }
             }
-          ]
+          ],
+          "combinator": "and"
         }
       },
       "id": "verify-secret",
       "name": "Verify Secret",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [450, 300]
     },
     {
@@ -42,7 +46,7 @@
       "name": "401 Unauthorized",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [650, 450]
+      "position": [650, 480]
     },
     {
       "parameters": {
@@ -59,8 +63,9 @@
     {
       "parameters": {
         "sendTo": "={{ $json.body.user_email }}",
-        "subject": "Reserva confirmada — {{ $json.body.agent_name || $json.body.agent_slug }} · TuAgente Store",
-        "message": "Hola {{ $json.body.user_name }},\n\n¡Tu reserva fue confirmada!\n\n**Resumen:**\n- Agente: {{ $json.body.agent_name || $json.body.agent_slug }}\n- Plan: {{ $json.body.plan_interest || 'starter' }}\n- Empresa: {{ $json.body.company || '—' }}\n{{ $json.body.preferred_date ? '- Fecha preferida: ' + $json.body.preferred_date : '' }}\n\n**¿Qué sigue?**\nNuestro equipo te contactará en **menos de 24 horas hábiles** para:\n1. Revisar tu caso de uso\n2. Coordinar la configuración\n3. Enviarte el link de activación\n\n**¿Preguntas?**\nRespondé este email o escribinos a hola@tuagentestore.com\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com",
+        "subject": "={{ 'Reserva confirmada — ' + ($json.body.agent_name || $json.body.agent_slug || 'Agente IA') + ' · TuAgente Store' }}",
+        "emailType": "html",
+        "message": "={{ `<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Reserva confirmada</title></head><body style=\"margin:0;padding:0;background:#f4f6fb;font-family:'Segoe UI',Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f6fb;padding:32px 0;\"><tr><td align=\"center\"><table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);max-width:600px;\"><tr><td style=\"background:linear-gradient(135deg,#1e3a6e 0%,#2563eb 100%);padding:32px 40px;text-align:center;\"><img src='https://tuagentestore.com/logo-white.png' alt='TuAgente Store' width='160' style='display:block;margin:0 auto 16px;' onerror='this.style.display=&quot;none&quot;'><h1 style=\"color:#ffffff;margin:0;font-size:24px;font-weight:700;letter-spacing:-0.5px;\">Tu reserva fue confirmada</h1><p style=\"color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;\">Gracias por elegir TuAgente Store</p></td></tr><tr><td style=\"padding:32px 40px;\"><p style=\"color:#374151;font-size:16px;margin:0 0 8px;\">Hola <strong>` + ($json.body.user_name || 'allí') + `</strong>,</p><p style=\"color:#374151;font-size:15px;line-height:1.6;margin:0 0 24px;\">Recibimos tu solicitud. Nuestro equipo la revisará y te contactará en <strong>menos de 24 horas hábiles</strong>.</p><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f8faff;border:1px solid #e5e7eb;border-radius:8px;margin:0 0 24px;\"><tr><td style=\"padding:20px 24px;\"><p style=\"color:#6b7280;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 12px;\">Resumen de tu reserva</p><table width=\"100%\"><tr><td style=\"padding:4px 0;color:#6b7280;font-size:14px;width:40%;\">Agente</td><td style=\"padding:4px 0;color:#111827;font-size:14px;font-weight:600;\">` + ($json.body.agent_name || $json.body.agent_slug || '—') + `</td></tr><tr><td style=\"padding:4px 0;color:#6b7280;font-size:14px;\">Plan</td><td style=\"padding:4px 0;color:#111827;font-size:14px;font-weight:600;\">` + ($json.body.plan_interest || 'Starter') + `</td></tr><tr><td style=\"padding:4px 0;color:#6b7280;font-size:14px;\">Empresa</td><td style=\"padding:4px 0;color:#111827;font-size:14px;font-weight:600;\">` + ($json.body.company || '—') + `</td></tr>` + ($json.body.preferred_date ? `<tr><td style=\"padding:4px 0;color:#6b7280;font-size:14px;\">Fecha preferida</td><td style=\"padding:4px 0;color:#111827;font-size:14px;font-weight:600;\">` + $json.body.preferred_date + `</td></tr>` : '') + `</table></td></tr></table><p style=\"color:#374151;font-size:14px;font-weight:600;margin:0 0 12px;\">¿Qué sigue?</p><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td style=\"padding:6px 0;\"><table><tr><td style=\"width:28px;height:28px;background:#2563eb;border-radius:50%;text-align:center;vertical-align:middle;\"><span style=\"color:#fff;font-size:13px;font-weight:700;\">1</span></td><td style=\"padding-left:12px;color:#374151;font-size:14px;\">Revisamos tu caso de uso</td></tr></table></td></tr><tr><td style=\"padding:6px 0;\"><table><tr><td style=\"width:28px;height:28px;background:#2563eb;border-radius:50%;text-align:center;vertical-align:middle;\"><span style=\"color:#fff;font-size:13px;font-weight:700;\">2</span></td><td style=\"padding-left:12px;color:#374151;font-size:14px;\">Coordinamos la configuración</td></tr></table></td></tr><tr><td style=\"padding:6px 0;\"><table><tr><td style=\"width:28px;height:28px;background:#2563eb;border-radius:50%;text-align:center;vertical-align:middle;\"><span style=\"color:#fff;font-size:13px;font-weight:700;\">3</span></td><td style=\"padding-left:12px;color:#374151;font-size:14px;\">Te enviamos el link de activación</td></tr></table></td></tr></table></td></tr><tr><td style=\"background:#f8faff;padding:24px 40px;border-top:1px solid #e5e7eb;\"><p style=\"color:#6b7280;font-size:13px;margin:0 0 4px;\">¿Tenés preguntas? Respondé este email o escribinos a</p><a href=\"mailto:hola@tuagentestore.com\" style=\"color:#2563eb;font-size:13px;font-weight:600;text-decoration:none;\">hola@tuagentestore.com</a><p style=\"color:#9ca3af;font-size:12px;margin:12px 0 0;\">© 2026 TuAgente Store · <a href=\"https://tuagentestore.com\" style=\"color:#9ca3af;\">tuagentestore.com</a></p></td></tr></table></td></tr></table></body></html>` }}",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store"
@@ -70,10 +75,10 @@
       "name": "Email: Confirmación al Lead",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [700, 250],
+      "position": [700, 280],
       "credentials": {
         "gmailOAuth2": {
-          "id": "gmail-oauth2",
+          "id": "EzOwUZC8g74ixDQC",
           "name": "Gmail OAuth2"
         }
       }
@@ -81,8 +86,9 @@
     {
       "parameters": {
         "sendTo": "={{ $env.ADMIN_EMAIL }}",
-        "subject": "📋 Nueva reserva: {{ $json.body.user_name }} — {{ $json.body.plan_interest }} — {{ $json.body.agent_slug }}",
-        "message": "Nueva reserva recibida:\n\n**Lead:**\n- Nombre: {{ $json.body.user_name }}\n- Email: {{ $json.body.user_email }}\n- Teléfono: {{ $json.body.phone }}\n- Empresa: {{ $json.body.company || '—' }}\n- Industria: {{ $json.body.industry || '—' }}\n\n**Solicitud:**\n- Agente: {{ $json.body.agent_slug }}\n- Plan: {{ $json.body.plan_interest }}\n- Fecha preferida: {{ $json.body.preferred_date || 'No especificó' }}\n- Caso de uso: {{ $json.body.use_case || '—' }}\n\n**ID:** {{ $json.body.reservation_id }}\n\n👉 Ver en admin: https://tuagentestore.com/admin",
+        "subject": "={{ '📋 Nueva reserva: ' + $json.body.user_name + ' — ' + ($json.body.plan_interest || 'starter') + ' — ' + ($json.body.agent_name || $json.body.agent_slug) }}",
+        "emailType": "html",
+        "message": "={{ `<!DOCTYPE html><html><body style=\"font-family:'Segoe UI',Arial,sans-serif;background:#f4f6fb;padding:32px;\"><table width=\"600\" style=\"background:#fff;border-radius:10px;padding:32px;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,0.07);\"><tr><td><h2 style=\"color:#1e3a6e;margin:0 0 20px;\">Nueva reserva recibida</h2><table width=\"100%\" style=\"border-collapse:collapse;\"><tr><td colspan=\"2\" style=\"background:#f0f4ff;padding:8px 12px;font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;border-radius:4px 4px 0 0;\">Datos del lead</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Nombre</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;font-weight:600;\">` + $json.body.user_name + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Email</td><td style=\"padding:8px 12px;color:#2563eb;font-size:14px;\"><a href=\"mailto:` + $json.body.user_email + `\">` + $json.body.user_email + `</a></td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Teléfono</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;\">` + ($json.body.phone || '—') + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Empresa</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;\">` + ($json.body.company || '—') + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Industria</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;\">` + ($json.body.industry || '—') + `</td></tr><tr><td colspan=\"2\" style=\"background:#faf5ff;padding:8px 12px;font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;border-radius:0;\">Solicitud</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Agente</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;font-weight:700;\">` + ($json.body.agent_name || $json.body.agent_slug) + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Plan</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;\">` + ($json.body.plan_interest || '—') + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Fecha preferida</td><td style=\"padding:8px 12px;color:#111827;font-size:14px;\">` + ($json.body.preferred_date || 'No especificó') + `</td></tr><tr style=\"border-bottom:1px solid #e5e7eb;\"><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">Caso de uso</td><td style=\"padding:8px 12px;color:#374151;font-size:14px;\">` + ($json.body.use_case || '—') + `</td></tr><tr><td style=\"padding:8px 12px;color:#6b7280;font-size:14px;\">ID</td><td style=\"padding:8px 12px;color:#9ca3af;font-size:12px;font-family:monospace;\">` + $json.body.reservation_id + `</td></tr></table><div style=\"margin-top:24px;text-align:center;\"><a href=\"https://tuagentestore.com/admin\" style=\"display:inline-block;background:#2563eb;color:#fff;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;\">Ver en panel admin →</a></div></td></tr></table></body></html>` }}",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store Ops"
@@ -92,10 +98,10 @@
       "name": "Email: Alerta Admin",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [700, 400],
+      "position": [700, 420],
       "credentials": {
         "gmailOAuth2": {
-          "id": "gmail-oauth2",
+          "id": "EzOwUZC8g74ixDQC",
           "name": "Gmail OAuth2"
         }
       }
@@ -114,19 +120,16 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Date": "={{ new Date($json.body.created_at || Date.now()).toLocaleString('es-AR') }}",
-            "Reservation ID": "={{ $json.body.reservation_id }}",
-            "Name": "={{ $json.body.user_name }}",
+            "Fecha": "={{ new Date($json.body.created_at || Date.now()).toLocaleString('es-AR') }}",
+            "Reserva ID": "={{ $json.body.reservation_id }}",
+            "Nombre": "={{ $json.body.user_name }}",
             "Email": "={{ $json.body.user_email }}",
-            "Phone": "={{ $json.body.phone }}",
-            "Company": "={{ $json.body.company }}",
-            "Industry": "={{ $json.body.industry }}",
-            "Agent": "={{ $json.body.agent_slug }}",
+            "Teléfono": "={{ $json.body.phone }}",
+            "Empresa": "={{ $json.body.company }}",
+            "Agente": "={{ $json.body.agent_name || $json.body.agent_slug }}",
             "Plan": "={{ $json.body.plan_interest }}",
-            "Preferred Date": "={{ $json.body.preferred_date }}",
-            "Use Case": "={{ $json.body.use_case }}",
-            "Status": "new",
-            "Notes": ""
+            "Fecha Preferida": "={{ $json.body.preferred_date }}",
+            "Estado": "new"
           }
         },
         "options": {}
@@ -138,26 +141,30 @@
       "position": [1000, 300],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "google-oauth2",
-          "name": "Google OAuth2"
+          "id": "fcrCF63uNbwzoCEy",
+          "name": "Google Sheets OAuth2"
         }
       }
     },
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
             {
-              "value1": "={{ $json.body.preferred_date }}",
-              "operation": "isNotEmpty"
+              "id": "date-check",
+              "leftValue": "={{ $json.body.preferred_date }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
             }
-          ]
+          ],
+          "combinator": "and"
         }
       },
       "id": "check-date",
       "name": "¿Tiene fecha preferida?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [1000, 150]
     },
     {
@@ -169,8 +176,8 @@
         "start": "={{ $json.body.preferred_date + 'T10:00:00' }}",
         "end": "={{ $json.body.preferred_date + 'T10:30:00' }}",
         "additionalFields": {
-          "summary": "Demo/Activación: {{ $json.body.user_name }} ({{ $json.body.company || '—' }}) — {{ $json.body.agent_slug }}",
-          "description": "Lead: {{ $json.body.user_name }}\nEmail: {{ $json.body.user_email }}\nTel: {{ $json.body.phone }}\nPlan: {{ $json.body.plan_interest }}\nAgente: {{ $json.body.agent_slug }}\n\nCaso de uso:\n{{ $json.body.use_case || '—' }}",
+          "summary": "={{ 'Demo/Activación: ' + $json.body.user_name + ' (' + ($json.body.company || '—') + ') — ' + ($json.body.agent_name || $json.body.agent_slug) }}",
+          "description": "={{ 'Lead: ' + $json.body.user_name + '\\nEmail: ' + $json.body.user_email + '\\nTel: ' + ($json.body.phone || '—') + '\\nPlan: ' + ($json.body.plan_interest || '—') + '\\nAgente: ' + ($json.body.agent_name || $json.body.agent_slug) + '\\n\\nCaso de uso:\\n' + ($json.body.use_case || '—') }}",
           "attendees": [
             {
               "email": "={{ $json.body.user_email }}"
@@ -186,8 +193,8 @@
       "position": [1200, 100],
       "credentials": {
         "googleCalendarOAuth2Api": {
-          "id": "google-oauth2",
-          "name": "Google OAuth2"
+          "id": "MQuHcHbzRKiPGjRz",
+          "name": "Google Calendar OAuth2"
         }
       }
     }
@@ -226,5 +233,5 @@
   "staticData": null,
   "tags": [{ "name": "reservations" }, { "name": "fase-2" }],
   "triggerCount": 1,
-  "active": false
+  "active": true
 }

@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { X, Send, Loader2, MessageSquare, Bot } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -64,25 +66,60 @@ export default function SalesAgentWidget() {
     setInput('')
     setLoading(true)
 
+    // Agregar placeholder de respuesta que se irá completando con el stream
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }])
+
     try {
       const res = await fetch('/api/chat/sales-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: updated }),
       })
-      const data = await res.json()
-      const reply: Message = {
-        role: 'assistant',
-        content: res.ok && data.message
-          ? data.message
-          : 'Ups, hubo un problema. Escribinos directamente por WhatsApp.',
+
+      if (!res.ok || !res.body) {
+        setMessages(prev => {
+          const copy = [...prev]
+          copy[copy.length - 1] = { role: 'assistant', content: 'Ups, hubo un problema. Escribinos directamente por WhatsApp.' }
+          return copy
+        })
+        return
       }
-      setMessages(prev => [...prev, reply])
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const payload = line.slice(6)
+          if (payload === '[DONE]') break
+          try {
+            const { chunk } = JSON.parse(payload) as { chunk: string }
+            setMessages(prev => {
+              const copy = [...prev]
+              copy[copy.length - 1] = {
+                role: 'assistant',
+                content: copy[copy.length - 1].content + chunk,
+              }
+              return copy
+            })
+          } catch {}
+        }
+      }
     } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Ups, hubo un problema. Escribinos directamente por WhatsApp.',
-      }])
+      setMessages(prev => {
+        const copy = [...prev]
+        copy[copy.length - 1] = { role: 'assistant', content: 'Ups, hubo un problema. Escribinos directamente por WhatsApp.' }
+        return copy
+      })
     } finally {
       setLoading(false)
     }
@@ -127,12 +164,21 @@ export default function SalesAgentWidget() {
                     ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-br-sm'
                     : 'bg-muted text-foreground rounded-bl-sm'
                 }`}>
-                  {msg.content}
+                  {msg.role === 'assistant' ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      className="prose prose-sm prose-invert max-w-none [&>p]:mb-1 [&>p:last-child]:mb-0 [&>ul]:pl-4 [&>ol]:pl-4"
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
                 </div>
               </div>
             ))}
 
-            {loading && (
+            {loading && messages[messages.length - 1]?.content === '' && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-2xl rounded-bl-sm px-3.5 py-3">
                   <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />

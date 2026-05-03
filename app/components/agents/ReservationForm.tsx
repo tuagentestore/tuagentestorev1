@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { CheckCircle, Loader2, Send } from 'lucide-react'
+import { AGENT_PRICING } from '@/lib/pricing'
 
 interface Props {
   agentId?: string
@@ -12,10 +13,10 @@ interface Props {
 
 const INDUSTRIES = ['Seguros', 'Inmobiliaria', 'Legal', 'Tecnología', 'Salud', 'Retail', 'E-commerce', 'Educación', 'Otro']
 
-export default function ReservationForm({ agentId, agentSlug, agentName, pricingBasic = 397, pricingPro = 597 }: Props) {
+export default function ReservationForm({ agentId, agentSlug, agentName, pricingBasic = AGENT_PRICING.basic, pricingPro = AGENT_PRICING.pro }: Props) {
   const PLANS = [
-    { value: 'starter', label: `Básico ($${pricingBasic}/mes)` },
-    { value: 'pro', label: `Pro ($${pricingPro}/mes)` },
+    { value: 'starter', label: `Starter ($${pricingBasic}/mes)` },
+    { value: 'professional', label: `Professional ($${pricingPro}/mes)` },
     { value: 'enterprise', label: 'Enterprise (a medida)' },
   ]
   const [form, setForm] = useState({
@@ -98,7 +99,7 @@ export default function ReservationForm({ agentId, agentSlug, agentName, pricing
         Completá el formulario y te contactamos en menos de 24h.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {/* Name + Email */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Bot, Zap, TrendingUp, Clock, ArrowRight, Plus, AlertCircle,
@@ -77,48 +77,6 @@ const agentGradients = [
   'from-purple-500 to-violet-600',
 ]
 
-function ParticleCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    let animId: number
-    const resize = () => {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
-    }
-    resize()
-    const particles = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 1.5 + 0.5,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      a: Math.random() * 0.3 + 0.05,
-    }))
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (const p of particles) {
-        p.x += p.vx; p.y += p.vy
-        if (p.x < 0) p.x = canvas.width
-        if (p.x > canvas.width) p.x = 0
-        if (p.y < 0) p.y = canvas.height
-        if (p.y > canvas.height) p.y = 0
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(99,102,241,${p.a})`
-        ctx.fill()
-      }
-      animId = requestAnimationFrame(draw)
-    }
-    draw()
-    window.addEventListener('resize', resize)
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
-  }, [])
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null)
@@ -126,12 +84,6 @@ export default function DashboardPage() {
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'overview' | 'agents' | 'activity'>('overview')
-  const [currentTime, setCurrentTime] = useState(new Date())
-
-  useEffect(() => {
-    const t = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -165,20 +117,12 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(' ')[0] ?? 'bienvenido'
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <ParticleCanvas />
-
-      <div className="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-xs text-muted-foreground font-mono">
-                {currentTime.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </span>
-            </div>
             <h1 className="text-3xl font-extrabold text-foreground">
               Hola, {firstName}
             </h1>

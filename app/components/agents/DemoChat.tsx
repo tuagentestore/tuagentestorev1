@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, MessageSquare, ArrowRight } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
@@ -178,7 +180,16 @@ export default function DemoChat({ agentSlug, agentName, maxMessages = 3, onDemo
                 ? 'bg-muted text-foreground rounded-tl-none'
                 : 'bg-primary text-primary-foreground rounded-tr-none'
             }`}>
-              {msg.content}
+              {msg.role === 'assistant' ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  className="prose prose-sm prose-invert max-w-none [&>p]:mb-1 [&>p:last-child]:mb-0 [&>ul]:pl-4 [&>ol]:pl-4"
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}

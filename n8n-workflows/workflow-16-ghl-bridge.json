@@ -1,0 +1,79 @@
+{
+  "name": "16 — GHL Bridge (STUB — activar cuando GHL esté contratado)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ghl-sync",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wf16-webhook",
+      "name": "Webhook: ghl-sync",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "ghl-sync"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ─── GHL Field Mapping ───────────────────────────────────────\n// Mapa de campos TuAgenteStore → GoHighLevel\n// Activar cuando se contrate GHL (Starter USD 97/mes recomendado)\n// API Docs: https://highlevel.stoplight.io/docs/integrations/\n//\n// PARA ACTIVAR:\n// 1. Contratar GHL en https://gohighlevel.com\n// 2. Settings > Integrations > API > crear API Key\n// 3. Agregar GHL_API_KEY al .env del VPS\n// 4. Activar este workflow en n8n\n\nconst body = $input.first().json.body || $input.first().json;\n\nconst ghlContact = {\n  firstName:    (body.name || '').split(' ')[0],\n  lastName:     (body.name || '').split(' ').slice(1).join(' '),\n  email:        body.email,\n  phone:        body.whatsapp,\n  companyName:  body.company,\n  // Custom fields GHL\n  customFields: [\n    { id: 'problem_area',   field_value: body.problem_area },\n    { id: 'budget_range',   field_value: body.budget_range },\n    { id: 'company_size',   field_value: body.company_size },\n    { id: 'channel_origin', field_value: body.channel_origin },\n    { id: 'agent_interest', field_value: body.agent_interest || '' },\n    { id: 'lead_source',    field_value: 'tuagentestore.com' }\n  ],\n  tags: ['tuagentestore', body.problem_area, body.channel_origin].filter(Boolean)\n};\n\nconst ghlOpportunity = {\n  title:       `[TAS] ${body.name} — ${body.problem_area}`,\n  status:      'open',\n  stageId:     'STAGE_ID_NUEVO',     // Reemplazar con ID real del pipeline stage\n  pipelineId:  'PIPELINE_ID_VENTAS', // Reemplazar con ID real\n  monetaryValue: 397,                // Ticket mínimo USD\n  assignedTo:  'USER_ID_ADMIN'       // Reemplazar con ID del usuario GHL\n};\n\nreturn [{ json: { ...body, ghl_contact: ghlContact, ghl_opportunity: ghlOpportunity } }];"
+      },
+      "id": "wf16-map-fields",
+      "name": "Mapear campos → GHL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.gohighlevel.com/v1/contacts/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.ghl_contact) }}",
+        "options": {}
+      },
+      "id": "wf16-create-contact",
+      "name": "GHL: crear/actualizar contacto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [720, 300],
+      "notes": "STUB — necesita GHL_API_KEY en .env. Ver comentarios en nodo anterior."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Actualizar ghl_contact_id en TuAgenteStore DB (vía API interna)\nconst ghlResponse = $input.first().json;\nconst leadId = $('Mapear campos → GHL').first().json.lead_id;\n\nif (!ghlResponse.contact?.id || !leadId) {\n  return [{ json: { skipped: true, reason: 'No contact ID or lead ID' } }];\n}\n\nconst res = await fetch(`${$env.NEXT_APP_URL || 'https://tuagentestore.com'}/api/admin/reservations/${leadId}`, {\n  method: 'PATCH',\n  headers: {\n    'Content-Type': 'application/json',\n    'x-webhook-secret': $env.WEBHOOK_SECRET_INTERNAL\n  },\n  body: JSON.stringify({ ghl_contact_id: ghlResponse.contact.id })\n});\n\nreturn [{ json: { ok: res.ok, ghl_contact_id: ghlResponse.contact?.id } }];"
+      },
+      "id": "wf16-update-db",
+      "name": "Actualizar ghl_contact_id en DB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: ghl-sync": {
+      "main": [[{ "node": "Mapear campos → GHL", "type": "main", "index": 0 }]]
+    },
+    "Mapear campos → GHL": {
+      "main": [[{ "node": "GHL: crear/actualizar contacto", "type": "main", "index": 0 }]]
+    },
+    "GHL: crear/actualizar contacto": {
+      "main": [[{ "node": "Actualizar ghl_contact_id en DB", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "tags": ["ghl", "crm", "stub", "pending"]
+}

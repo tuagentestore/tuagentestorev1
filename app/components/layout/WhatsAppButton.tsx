@@ -1,7 +1,7 @@
 'use client'
 
 const WA_NUMBER = '5493437527193'
-const WA_MSG = encodeURIComponent('Hola, me interesa saber más sobre TuAgente Store')
+const WA_MSG = encodeURIComponent('Hola, me interesa TuAgente Store 👋')
 
 export default function WhatsAppButton() {
   return (

@@ -1,33 +1,37 @@
-import { Search, Play, CheckCircle, Rocket } from 'lucide-react'
+import { Microscope, Settings2, CheckCircle, BarChart3 } from 'lucide-react'
 
 const STEPS = [
   {
     number: '01',
-    icon: Search,
-    title: 'Explorá el catálogo',
-    description: 'Navegá agentes especializados por categoría: ventas, soporte, marketing, operaciones y más.',
+    icon: Microscope,
+    title: 'Diagnóstico de tu operación',
+    description: 'Identificamos los procesos que más tiempo consumen en tu equipo y definimos qué parte puede ejecutar un agente desde el día 1.',
     color: 'from-blue-500 to-blue-600',
+    label: 'Diagnóstico',
   },
   {
     number: '02',
-    icon: Play,
-    title: 'Probá el demo gratis',
-    description: 'Chateá con el agente en vivo y verificá que resuelve exactamente lo que tu negocio necesita.',
+    icon: Settings2,
+    title: 'Sistema diseñado para vos',
+    description: 'Configuramos el agente con tus integraciones, flujos de trabajo y tono de marca. No es un template genérico — es tu sistema.',
     color: 'from-indigo-500 to-indigo-600',
+    label: 'Configuración',
   },
   {
     number: '03',
     icon: CheckCircle,
-    title: 'Reservá tu activación',
-    description: 'Completá el formulario en 2 minutos. Nuestro equipo se contacta en menos de 24 horas.',
+    title: 'Activación sin código',
+    description: 'Nuestro equipo implementa todo y te muestra cómo funciona. Vos aprobás y lanzás. Sin desarrollo. Sin esperas de semanas.',
     color: 'from-violet-500 to-violet-600',
+    label: 'Activación',
   },
   {
     number: '04',
-    icon: Rocket,
-    title: 'Agente activo en 24h',
-    description: 'Configuramos e integramos el agente con tus herramientas. Listo para trabajar desde el día 1.',
+    icon: BarChart3,
+    title: 'Sistema activo y medible',
+    description: 'Dashboard con métricas reales desde el día 1: acciones ejecutadas, tiempo ahorrado y leads procesados. Soporte continuo incluido.',
     color: 'from-purple-500 to-purple-600',
+    label: 'Resultados',
   },
 ]
 
@@ -39,14 +43,14 @@ export default function HowItWorks() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
-            Proceso simple
+            Implementación
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            De la idea al agente activo
-            <span className="text-gradient"> en 4 pasos</span>
+            Así implementamos
+            <span className="text-gradient"> el sistema</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Sin código. Sin contratos complejos. Sin semanas de espera.
+            No vendemos software. Implementamos el sistema operativo de tu negocio.
           </p>
         </div>
 
@@ -71,6 +75,7 @@ export default function HowItWorks() {
                   <span className="text-4xl font-black text-border select-none">{step.number}</span>
                 </div>
 
+                <div className="text-xs font-medium text-primary/70 uppercase tracking-wider mb-1">{step.label}</div>
                 <h3 className="font-bold text-foreground text-lg mb-2">{step.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
               </div>

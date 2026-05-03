@@ -20,40 +20,40 @@ export default function CTASection() {
             </div>
 
             <h2 className="text-4xl sm:text-5xl font-extrabold text-foreground mb-6">
-              Tu negocio automatizado
+              Tu negocio no necesita más caos.
               <br />
-              <span className="text-gradient-hero">en menos de 24 horas</span>
+              <span className="text-gradient-hero">Necesita sistema.</span>
             </h2>
 
             <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-              Explorá el catálogo, probá el demo gratis y reservá tu activación.
-              Sin tarjeta de crédito, sin compromisos. Solo resultados.
+              Explorá el catálogo, mirá cómo se ve el sistema en tu operación
+              y pedí un diagnóstico sin compromisos.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link
-                href="/agents"
+                href="/marketplace"
                 className="group flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-base hover:shadow-glow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Zap className="w-5 h-5" />
-                Explorar Agentes
+                Explorá los agentes
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                href="/contact?type=diagnostico"
+                href="/contact?type=demo"
                 className="group flex items-center justify-center gap-2 px-8 py-4 bg-card/80 border border-border text-foreground rounded-xl font-semibold text-base hover:border-primary/50 hover:bg-muted transition-all"
               >
                 <Calendar className="w-5 h-5 text-primary" />
-                Contratar Diagnóstico
+                Pedí diagnóstico
               </Link>
               <a
-                href="https://wa.me/5493437527193?text=Hola%2C+me+interesa+TuAgente+Store"
+                href="https://wa.me/5493437527193?text=Hola%2C+me+interesa+TuAgente+Store+%F0%9F%91%8B"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center gap-2 px-8 py-4 bg-[#25D366]/10 border border-[#25D366]/30 text-foreground rounded-xl font-semibold text-base hover:bg-[#25D366]/20 hover:border-[#25D366]/50 transition-all"
               >
                 <MessageCircle className="w-5 h-5 text-[#25D366]" />
-                Escribir por WhatsApp
+                Escribinos por WhatsApp
               </a>
             </div>
 

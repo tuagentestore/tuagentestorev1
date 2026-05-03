@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import AgentDetailClient from '@/components/agents/AgentDetailClient'
 
+export const revalidate = 21600 // 6h ISR — re-render from CDN after 6 hours
+
 interface Props { params: Promise<{ slug: string }> }
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tuagentestore.com'

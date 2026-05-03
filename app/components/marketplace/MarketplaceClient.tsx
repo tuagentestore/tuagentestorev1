@@ -9,25 +9,27 @@ import {
   SlidersHorizontal, GitCompare, Star, ChevronRight, Sparkles,
 } from 'lucide-react'
 
-interface Agent {
+export interface Agent {
   id: string
   name: string
   slug: string
   tagline: string
   category: string
   capabilities: string[]
+  integrations?: string[]
+  image_url?: string | null
   pricing_basic: number
   pricing_pro: number
   featured: boolean
   demo_available: boolean
 }
 
-const AGENTS: Agent[] = [
+const FALLBACK_AGENTS: Agent[] = [
   { id: '1', name: 'Sales AI Closer', slug: 'sales-ai-closer', tagline: 'Cierra más ventas, automatiza el seguimiento de leads', category: 'Ventas', capabilities: ['Calificación de leads', 'Seguimiento automático', 'Integración CRM'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true },
   { id: '2', name: 'AI Support Agent', slug: 'ai-support-agent', tagline: 'Soporte al cliente 24/7 que resuelve, no solo responde', category: 'Soporte', capabilities: ['Resolución autónoma 80%', 'Escalada inteligente', 'Multicanal'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true },
   { id: '3', name: 'AI Lead Engine', slug: 'ai-lead-engine', tagline: 'Genera y califica leads 24/7 en piloto automático', category: 'Ventas', capabilities: ['Captura multicanal', 'Scoring automático', 'Alertas tiempo real'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true },
-  { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', category: 'Marketing', capabilities: ['Reportes automáticos', 'Generación de contenido', 'Análisis de campañas'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true },
-  { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', category: 'E-commerce', capabilities: ['Recuperación de carritos', 'Cross-sell y upsell', 'Post-venta automática'], pricing_basic: 447, pricing_pro: 697, featured: false, demo_available: true },
+  { id: '4', name: 'Marketing AI Agent', slug: 'marketing-ai-agent', tagline: 'Automatiza reportes, contenido y campañas de marketing', category: 'Marketing', capabilities: ['Reportes automáticos', 'Generación de contenido', 'Análisis de campañas'], pricing_basic: 397, pricing_pro: 597, featured: false, demo_available: true },
+  { id: '5', name: 'E-Commerce Agent', slug: 'ecommerce-agent', tagline: 'Recupera carritos, cross-sell y retención automatizada', category: 'E-commerce', capabilities: ['Recuperación de carritos', 'Cross-sell y upsell', 'Post-venta automática'], pricing_basic: 397, pricing_pro: 597, featured: false, demo_available: true },
   { id: '6', name: 'Appointment Setting', slug: 'appointment-setting-agent', tagline: 'Agenda reuniones y demos de forma completamente automática', category: 'Ventas', capabilities: ['Agendamiento automático', 'Calificación previa', 'Recordatorios multicanal'], pricing_basic: 397, pricing_pro: 597, featured: true, demo_available: true },
 ]
 
@@ -107,11 +109,13 @@ const categoryColors: Record<string, string> = {
   'E-commerce': 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20',
 }
 
-export default function MarketplaceClient() {
+export default function MarketplaceClient({ initialAgents }: { initialAgents?: Agent[] }) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [compareList, setCompareList] = useState<string[]>([])
+
+  const agents = initialAgents?.length ? initialAgents : FALLBACK_AGENTS
 
   const toggleCompare = (slug: string) => {
     setCompareList(prev => {
@@ -127,16 +131,16 @@ export default function MarketplaceClient() {
   }
 
   const filtered = useMemo(() => {
-    return AGENTS.filter(a => {
+    return agents.filter(a => {
       const matchCat = activeCategory === 'Todos' || a.category === activeCategory
       const matchQ = !search || [a.name, a.tagline, a.category].some(
         s => s.toLowerCase().includes(search.toLowerCase())
       )
       return matchCat && matchQ
     })
-  }, [search, activeCategory])
+  }, [search, activeCategory, agents])
 
-  const trending = AGENTS.filter(a => a.featured)
+  const trending = agents.filter(a => a.featured)
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,7 +193,7 @@ export default function MarketplaceClient() {
           {/* Stats strip */}
           <div className="flex flex-wrap justify-center gap-8 text-sm">
             {[
-              { icon: Bot, label: '6 agentes disponibles', color: 'text-blue-400' },
+              { icon: Bot, label: `${agents.length} agentes disponibles`, color: 'text-blue-400' },
               { icon: TrendingUp, label: '4 categorías', color: 'text-indigo-400' },
               { icon: Clock, label: 'Setup en 24h', color: 'text-violet-400' },
               { icon: Shield, label: 'Soporte incluido', color: 'text-green-400' },
@@ -309,7 +313,7 @@ export default function MarketplaceClient() {
               >
                 {cat}
                 <span className="ml-1.5 text-xs opacity-60">
-                  {cat === 'Todos' ? AGENTS.length : AGENTS.filter(a => a.category === cat).length}
+                  {cat === 'Todos' ? agents.length : agents.filter(a => a.category === cat).length}
                 </span>
               </button>
             ))}

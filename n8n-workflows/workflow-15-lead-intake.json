@@ -1,0 +1,272 @@
+{
+  "name": "15 — Lead Intake Avanzado (form /empezar → email segmentado → nurture)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wf15-webhook",
+      "name": "Webhook: lead-intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "lead-intake"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalizar y enriquecer los datos del lead\nconst body = $input.first().json.body || $input.first().json;\n\nconst problemLabels = {\n  ventas:      'automatización de ventas',\n  soporte:     'soporte al cliente',\n  marketing:   'marketing con IA',\n  ecommerce:   'e-commerce',\n  leads:       'captación de leads',\n  operaciones: 'automatización de operaciones'\n};\n\nconst problemSubjects = {\n  ventas:      'Cerrá más ventas sin contratar más vendedores',\n  soporte:     'Respondé al 100% de las consultas sin ampliar equipo',\n  marketing:   'Creá contenido y captá leads en piloto automático',\n  ecommerce:   'Automatizá tu e-commerce y convertí más visitantes',\n  leads:       'Llenate de leads calificados sin esfuerzo manual',\n  operaciones: 'Liberá horas de trabajo eliminando tareas repetitivas'\n};\n\nconst agentSuggestions = {\n  ventas:      'Sales AI Closer',\n  soporte:     'AI Support Agent',\n  marketing:   'Marketing AI Agent',\n  ecommerce:   'E-Commerce Agent',\n  leads:       'AI Lead Engine',\n  operaciones: 'Appointment Setting Agent'\n};\n\nconst problem = body.problem_area || 'ventas';\n\nreturn [{\n  json: {\n    lead_id:        body.lead_id,\n    name:           body.name,\n    email:          body.email,\n    whatsapp:       body.whatsapp,\n    company:        body.company,\n    industry:       body.industry,\n    problem_area:   problem,\n    problem_label:  problemLabels[problem] || problem,\n    email_subject:  problemSubjects[problem] || 'Automatizá tu negocio con IA',\n    agent_suggested: agentSuggestions[problem] || 'Sales AI Closer',\n    company_size:   body.company_size,\n    budget_range:   body.budget_range,\n    channel_origin: body.channel_origin,\n    wants_call:     body.wants_call,\n    first_name:     (body.name || '').split(' ')[0]\n  }\n}];"
+      },
+      "id": "wf15-normalize",
+      "name": "Normalizar datos del lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypxnhwu0KYPDCsNGS5EyZ54F0c2TJLUQrdDgvYTMa98",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha":          "={{ $now.format('yyyy-MM-dd HH:mm') }}",
+            "Lead_ID":        "={{ $json.lead_id }}",
+            "Nombre":         "={{ $json.name }}",
+            "Email":          "={{ $json.email }}",
+            "WhatsApp":       "={{ $json.whatsapp }}",
+            "Empresa":        "={{ $json.company }}",
+            "Industria":      "={{ $json.industry }}",
+            "Problema":       "={{ $json.problem_area }}",
+            "Tamaño_empresa": "={{ $json.company_size }}",
+            "Presupuesto":    "={{ $json.budget_range }}",
+            "Canal_origen":   "={{ $json.channel_origin }}",
+            "Quiere_llamada": "={{ $json.wants_call }}",
+            "Agente_sugerido": "={{ $json.agent_suggested }}",
+            "Estado":         "nuevo"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf15-sheets",
+      "name": "Sheets: agregar a Leads Master",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [720, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "fcrCF63uNbwzoCEy",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir email de bienvenida segmentado por problema\nconst d = $input.first().json;\n\nconst agentUrl = `https://tuagentestore.com/agents/${d.agent_suggested.toLowerCase().replace(/\\s+/g,'-').replace(/[^a-z0-9-]/g,'')}`;\nconst empezarUrl = `https://tuagentestore.com/empezar?problema=${d.problem_area}`;\n\nconst body = `\n<div style=\"font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;background:#0a0f1e;color:#e2e8f0;padding:40px 32px;border-radius:16px\">\n  <div style=\"margin-bottom:32px\">\n    <span style=\"background:linear-gradient(135deg,#3b82f6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:20px\">TuAgenteStore</span>\n  </div>\n  <h1 style=\"font-size:24px;font-weight:800;color:#f1f5f9;margin-bottom:12px\">¡Hola ${d.first_name}! 👋</h1>\n  <p style=\"color:#94a3b8;line-height:1.7;margin-bottom:24px\">Recibimos tu consulta sobre <strong style=\"color:#f1f5f9\">${d.problem_label}</strong>. Nos ponemos en contacto en las próximas 2 horas.</p>\n  \n  <div style=\"background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:28px\">\n    <p style=\"color:#94a3b8;font-size:14px;margin-bottom:8px\">Agente sugerido para tu caso:</p>\n    <p style=\"font-weight:700;font-size:18px;color:#f1f5f9;margin-bottom:4px\">${d.agent_suggested}</p>\n    <a href=\"${agentUrl}\" style=\"color:#60a5fa;font-size:14px;text-decoration:none\">Ver este agente →</a>\n  </div>\n\n  <p style=\"color:#94a3b8;line-height:1.7;margin-bottom:28px\">Mientras tanto, podés explorar todos los agentes disponibles y ver demos en vivo de cada uno.</p>\n\n  <a href=\"https://tuagentestore.com/agents\" style=\"display:inline-block;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:16px\">Ver todos los agentes →</a>\n\n  <hr style=\"border:none;border-top:1px solid #1e293b;margin:36px 0\">\n  <p style=\"color:#475569;font-size:13px\">TuAgenteStore · Buenos Aires, Argentina · <a href=\"https://tuagentestore.com\" style=\"color:#475569\">tuagentestore.com</a></p>\n</div>\n`;\n\nreturn [{ json: { ...d, email_body: body } }];"
+      },
+      "id": "wf15-build-email",
+      "name": "Construir email bienvenida",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "sendTo":  "={{ $json.email }}",
+        "subject": "={{ $json.email_subject }} — TuAgenteStore",
+        "emailType": "html",
+        "message": "={{ $json.email_body }}",
+        "options": {
+          "ccList": "admin@tuagentestore.com"
+        }
+      },
+      "id": "wf15-gmail-welcome",
+      "name": "Gmail: email bienvenida segmentado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1200, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EzOwUZC8g74ixDQC",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 48,
+        "unit": "hours"
+      },
+      "id": "wf15-wait-48h",
+      "name": "Esperar 48 horas",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1440, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NEXT_APP_URL || 'https://tuagentestore.com' }}/api/admin/reservations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wf15-check-conversion",
+      "name": "Check: ¿convirtió?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue":  "={{ $json.reservations?.find(r => r.user_email === $('wf15-normalize').first().json.email && r.status !== 'new') }}",
+              "rightValue": "",
+              "operator": { "type": "object", "operation": "notEmpty" }
+            }
+          ]
+        }
+      },
+      "id": "wf15-if-converted",
+      "name": "IF: ¿ya avanzó en el pipeline?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1920, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('wf15-normalize').first().json;\n\nconst body = `\n<div style=\"font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;background:#0a0f1e;color:#e2e8f0;padding:40px 32px;border-radius:16px\">\n  <div style=\"margin-bottom:32px\">\n    <span style=\"background:linear-gradient(135deg,#3b82f6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:20px\">TuAgenteStore</span>\n  </div>\n  <h1 style=\"font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:12px\">Hola ${d.first_name}, ¿pudiste revisar el agente?</h1>\n  <p style=\"color:#94a3b8;line-height:1.7;margin-bottom:24px\">Hace 48 horas nos dejaste tu consulta sobre <strong style=\"color:#f1f5f9\">${d.problem_label}</strong>. ¿Tuviste la oportunidad de ver la demo?</p>\n  \n  <div style=\"background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:28px\">\n    <p style=\"color:#94a3b8;font-size:14px;margin-bottom:4px\">El agente que te sugerimos:</p>\n    <p style=\"font-weight:700;font-size:18px;color:#f1f5f9\">${d.agent_suggested}</p>\n    <p style=\"color:#94a3b8;font-size:14px;margin-top:8px\">Miles de empresas ya lo usan para ${d.problem_label}.</p>\n  </div>\n\n  <p style=\"color:#94a3b8;line-height:1.7;margin-bottom:28px\">Si tenés dudas o querés hablar con un especialista, respondé este email o agendá una llamada de 30 minutos:</p>\n\n  <a href=\"https://tuagentestore.com/empezar?problema=${d.problem_area}\" style=\"display:inline-block;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:16px\">Agendar llamada gratuita →</a>\n\n  <hr style=\"border:none;border-top:1px solid #1e293b;margin:36px 0\">\n  <p style=\"color:#475569;font-size:12px\">Si no querés recibir más emails, respondé con \"cancelar\". · TuAgenteStore</p>\n</div>\n`;\n\nreturn [{ json: { ...d, reminder_body: body } }];"
+      },
+      "id": "wf15-build-reminder",
+      "name": "Construir email recordatorio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2160, 420]
+    },
+    {
+      "parameters": {
+        "sendTo":  "={{ $json.email }}",
+        "subject": "¿Te ayudamos a automatizar {{ $json.problem_label }}? — TuAgenteStore",
+        "emailType": "html",
+        "message": "={{ $json.reminder_body }}",
+        "options": {}
+      },
+      "id": "wf15-gmail-reminder",
+      "name": "Gmail: recordatorio 48h",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [2400, 420],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EzOwUZC8g74ixDQC",
+          "name": "Gmail OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "days"
+      },
+      "id": "wf15-wait-5d",
+      "name": "Esperar 5 días",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2640, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('wf15-normalize').first().json;\n\nconst body = `\n<div style=\"font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;background:#0a0f1e;color:#e2e8f0;padding:40px 32px;border-radius:16px\">\n  <div style=\"margin-bottom:32px\">\n    <span style=\"background:linear-gradient(135deg,#3b82f6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:20px\">TuAgenteStore</span>\n  </div>\n  <h1 style=\"font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:12px\">Regalo para vos: diagnóstico gratuito</h1>\n  <p style=\"color:#94a3b8;line-height:1.7;margin-bottom:24px\">Hola ${d.first_name}, queremos ayudarte a descubrir exactamente cómo un agente IA puede resolver tu desafío de <strong style=\"color:#f1f5f9\">${d.problem_label}</strong>.</p>\n\n  <div style=\"background:linear-gradient(135deg,#1e3a5f,#1e1b4b);border:1px solid #3b82f6;border-radius:12px;padding:24px;margin-bottom:28px\">\n    <p style=\"font-weight:700;font-size:18px;color:#f1f5f9;margin-bottom:8px\">🎯 Diagnóstico IA gratuito (30 min)</p>\n    <p style=\"color:#94a3b8;font-size:14px;line-height:1.6\">Un especialista analiza tu operación actual y te muestra un roadmap personalizado de automatización. Sin compromiso.</p>\n    <ul style=\"color:#94a3b8;font-size:14px;padding-left:20px;margin-top:12px\">\n      <li>¿Qué procesos se pueden automatizar hoy?</li>\n      <li>¿Qué ahorro real genera el agente?</li>\n      <li>¿En cuánto tiempo lo tenés activo?</li>\n    </ul>\n  </div>\n\n  <a href=\"https://tuagentestore.com/empezar?problema=${d.problem_area}\" style=\"display:inline-block;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:600;font-size:16px\">Quiero mi diagnóstico gratuito →</a>\n\n  <hr style=\"border:none;border-top:1px solid #1e293b;margin:36px 0\">\n  <p style=\"color:#475569;font-size:12px\">Último email de esta secuencia. Si no querés más info, respondé con \"cancelar\".</p>\n</div>\n`;\n\nreturn [{ json: { ...d, diagnostic_body: body } }];"
+      },
+      "id": "wf15-build-diagnostic",
+      "name": "Construir email diagnóstico gratuito",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2880, 420]
+    },
+    {
+      "parameters": {
+        "sendTo":  "={{ $json.email }}",
+        "subject": "Regalo: diagnóstico IA gratuito para {{ $json.company || 'tu negocio' }}",
+        "emailType": "html",
+        "message": "={{ $json.diagnostic_body }}",
+        "options": {}
+      },
+      "id": "wf15-gmail-diagnostic",
+      "name": "Gmail: oferta diagnóstico gratuito",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [3120, 420],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EzOwUZC8g74ixDQC",
+          "name": "Gmail OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: lead-intake": {
+      "main": [[{ "node": "Normalizar datos del lead", "type": "main", "index": 0 }]]
+    },
+    "Normalizar datos del lead": {
+      "main": [[{ "node": "Sheets: agregar a Leads Master", "type": "main", "index": 0 }]]
+    },
+    "Sheets: agregar a Leads Master": {
+      "main": [[{ "node": "Construir email bienvenida", "type": "main", "index": 0 }]]
+    },
+    "Construir email bienvenida": {
+      "main": [[{ "node": "Gmail: email bienvenida segmentado", "type": "main", "index": 0 }]]
+    },
+    "Gmail: email bienvenida segmentado": {
+      "main": [[{ "node": "Esperar 48 horas", "type": "main", "index": 0 }]]
+    },
+    "Esperar 48 horas": {
+      "main": [[{ "node": "Check: ¿convirtió?", "type": "main", "index": 0 }]]
+    },
+    "Check: ¿convirtió?": {
+      "main": [[{ "node": "IF: ¿ya avanzó en el pipeline?", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿ya avanzó en el pipeline?": {
+      "main": [
+        [],
+        [{ "node": "Construir email recordatorio", "type": "main", "index": 0 }]
+      ]
+    },
+    "Construir email recordatorio": {
+      "main": [[{ "node": "Gmail: recordatorio 48h", "type": "main", "index": 0 }]]
+    },
+    "Gmail: recordatorio 48h": {
+      "main": [[{ "node": "Esperar 5 días", "type": "main", "index": 0 }]]
+    },
+    "Esperar 5 días": {
+      "main": [[{ "node": "Construir email diagnóstico gratuito", "type": "main", "index": 0 }]]
+    },
+    "Construir email diagnóstico gratuito": {
+      "main": [[{ "node": "Gmail: oferta diagnóstico gratuito", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "tags": ["lead-funnel", "email-nurture", "production"]
+}

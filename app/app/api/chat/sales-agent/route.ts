@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { chatWithRetry, ChatMessage } from '@/lib/openai'
+import { NextRequest } from 'next/server'
+import { chatStream } from '@/lib/ai'
 
 const SYSTEM_PROMPT = `Sos Vera, la asistente virtual de TuAgente Store — el marketplace de agentes IA para empresas latinoamericanas.
 
@@ -63,24 +63,72 @@ export async function POST(req: NextRequest) {
     const userMessages: { role: 'user' | 'assistant'; content: string }[] = body.messages ?? []
 
     if (!userMessages.length) {
-      return NextResponse.json({ error: 'No messages provided' }, { status: 400 })
+      return new Response(JSON.stringify({ error: 'No messages provided' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     // Intentar n8n primero (incluye logging de leads)
     const n8nResponse = await callViaN8n(userMessages)
     if (n8nResponse) {
-      return NextResponse.json({ message: n8nResponse })
+      // n8n responses are not streamed — wrap in SSE format for client compatibility
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: n8nResponse })}\n\n`))
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+          controller.close()
+        },
+      })
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      })
     }
 
-    // Fallback directo a OpenAI si n8n no está disponible
-    const messages: ChatMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...userMessages,
-    ]
-    const result = await chatWithRetry(messages, 'gpt-4o-mini', 400)
-    return NextResponse.json({ message: result.content })
+    // Fallback a Anthropic con streaming y prompt caching
+    // Mantener sliding window: últimos 4 pares de mensajes para eficiencia de tokens
+    const recentMessages = userMessages.slice(-8)
+    const aiStream = await chatStream(SYSTEM_PROMPT, recentMessages, {
+      tier: 'fast',
+      maxTokens: 400,
+      cacheSystem: true,
+    })
+
+    const encoder = new TextEncoder()
+    const sseStream = new ReadableStream({
+      async start(controller) {
+        const reader = aiStream.getReader()
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: value })}\n\n`))
+          }
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+        } finally {
+          reader.releaseLock()
+          controller.close()
+        }
+      },
+    })
+
+    return new Response(sseStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    })
   } catch (err) {
     console.error('[sales-agent]', err)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    return new Response(JSON.stringify({ error: 'Error interno del servidor' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 }

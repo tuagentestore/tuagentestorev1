@@ -55,7 +55,7 @@ const AGENTS: AgentRec[] = [
   { slug: 'appointment-setting-agent',name:'Appointment Setting',   tagline: 'Agenda reuniones y demos completamente automático',              category: 'Ventas',      price: 397, roi_30d: '2–4x',  roi_90d: '5x',    reason: 'Agenda citas, califica prospectos y envía recordatorios sin ninguna intervención manual.', color: 'from-sky-500 to-blue-600' },
   { slug: 'marketing-ai-agent',      name: 'Marketing AI Agent',    tagline: 'Campañas inteligentes que optimizan su propio ROAS',             category: 'Marketing',   price: 397, roi_30d: '2x',    roi_90d: '4x',    reason: 'Automatiza creación de campañas, calendario de contenido y optimización de ROAS.', color: 'from-violet-500 to-pink-600' },
   { slug: 'ecommerce-agent',         name: 'E-Commerce Agent',      tagline: 'Recupera carritos y multiplica tus ventas online',               category: 'E-Commerce',  price: 397, roi_30d: '3x',    roi_90d: '5–7x',  reason: 'Recupera carritos abandonados, hace upsell y aumenta la retención de clientes.', color: 'from-emerald-500 to-teal-600' },
-  { slug: 'operations-ai-agent',     name: 'Operations AI Agent',   tagline: 'Automatiza procesos internos, reportes y flujos operativos',     category: 'Operaciones', price: 447, roi_30d: '2x',    roi_90d: '4x',    reason: 'Automatiza flujos internos, genera reportes y gestiona tareas sin intervención manual.', color: 'from-sky-500 to-cyan-600' },
+  { slug: 'operations-ai-agent',     name: 'Operations AI Agent',   tagline: 'Automatiza procesos internos, reportes y flujos operativos',     category: 'Operaciones', price: 397, roi_30d: '2x',    roi_90d: '4x',    reason: 'Automatiza flujos internos, genera reportes y gestiona tareas sin intervención manual.', color: 'from-sky-500 to-cyan-600' },
 ]
 
 // ─── Recommendation engine ───────────────────────────────────────────────────
@@ -363,7 +363,7 @@ export default function WizardClient() {
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Elegí tu agente ideal</h1>
           <p className="text-muted-foreground">
-            {user ? `Hola, ${user.name ?? user.email.split('@')[0]} — ` : ''}
+            {user ? `Hola, ${user.name ?? user.email.split('@')[0].replace(/^./, c => c.toUpperCase())} — ` : ''}
             5 preguntas para encontrar la automatización perfecta para tu negocio.
           </p>
         </div>

@@ -316,3 +316,41 @@ CREATE TABLE IF NOT EXISTS user_activity (
 CREATE INDEX IF NOT EXISTS idx_user_activity_user  ON user_activity(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_user_activity_type  ON user_activity(activity_type, created_at);
 CREATE INDEX IF NOT EXISTS idx_user_activity_agent ON user_activity(agent_id) WHERE agent_id IS NOT NULL;
+
+-- ──────────────────────────────────────────────────────────
+-- AI_USAGE  (token tracking + cost dashboard)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS ai_usage (
+    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id            UUID REFERENCES tenants(id) ON DELETE SET NULL,
+    user_id              UUID REFERENCES users(id) ON DELETE SET NULL,
+    session_type         VARCHAR(50) NOT NULL,  -- 'vera' | 'demo' | 'wizard'
+    model                VARCHAR(100) NOT NULL,
+    input_tokens         INT NOT NULL DEFAULT 0,
+    output_tokens        INT NOT NULL DEFAULT 0,
+    cache_read_tokens    INT NOT NULL DEFAULT 0,
+    cache_write_tokens   INT NOT NULL DEFAULT 0,
+    cost_usd             NUMERIC(10, 6),
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_tenant    ON ai_usage(tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_ai_usage_type      ON ai_usage(session_type, created_at);
+
+-- ──────────────────────────────────────────────────────────
+-- KNOWLEDGE_BASE  (semantic search via pgvector)
+-- Requires: CREATE EXTENSION IF NOT EXISTS vector;
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS knowledge_base (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    agent_id   UUID REFERENCES agents(id) ON DELETE CASCADE,  -- NULL = global (Vera)
+    category   VARCHAR(100),
+    question   TEXT NOT NULL,
+    answer     TEXT NOT NULL,
+    metadata   JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_kb_agent    ON knowledge_base(agent_id);
+CREATE INDEX IF NOT EXISTS idx_kb_category ON knowledge_base(category);
+

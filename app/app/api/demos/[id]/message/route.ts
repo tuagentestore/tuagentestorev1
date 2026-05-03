@@ -27,21 +27,33 @@ export async function POST(
 ) {
   const { id } = await params
 
-  const body = await req.json()
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Payload inválido' }, { status: 400 })
+  }
+
   const parsed = MessageSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Mensaje inválido' }, { status: 400 })
   }
 
-  const session = await queryOne<DemoSession>(
-    `SELECT ds.id, ds.agent_id, ds.messages_used, ds.max_messages, ds.status,
-            ds.conversation, ds.user_email,
-            a.demo_prompt, a.demo_model, a.name AS agent_name
-     FROM demo_sessions ds
-     JOIN agents a ON a.id = ds.agent_id
-     WHERE ds.id = $1`,
-    [id]
-  )
+  let session: DemoSession | null
+  try {
+    session = await queryOne<DemoSession>(
+      `SELECT ds.id, ds.agent_id, ds.messages_used, ds.max_messages, ds.status,
+              ds.conversation, ds.user_email,
+              a.demo_prompt, a.demo_model, a.name AS agent_name
+       FROM demo_sessions ds
+       JOIN agents a ON a.id = ds.agent_id
+       WHERE ds.id = $1`,
+      [id]
+    )
+  } catch (err) {
+    console.error('[Demo message] DB lookup error:', err)
+    return NextResponse.json({ error: 'Error al obtener la sesión' }, { status: 500 })
+  }
 
   if (!session) {
     return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 })
@@ -54,9 +66,11 @@ export async function POST(
   }
 
   const history: ChatMessage[] = Array.isArray(session.conversation) ? session.conversation : []
-  const systemMessage: ChatMessage = { role: 'system', content: session.demo_prompt ?? `Eres ${session.agent_name}, un agente IA especializado. Responde de forma concisa y útil.` }
+  const systemMessage: ChatMessage = {
+    role: 'system',
+    content: session.demo_prompt ?? `Eres ${session.agent_name}, un agente IA especializado. Responde de forma concisa y útil.`,
+  }
   const userMessage: ChatMessage = { role: 'user', content: parsed.data.message }
-
   const messages: ChatMessage[] = [systemMessage, ...history.slice(-6), userMessage]
 
   let result
@@ -75,22 +89,27 @@ export async function POST(
   const newCount = session.messages_used + 1
   const isCompleted = newCount >= session.max_messages
 
-  await query(
-    `UPDATE demo_sessions
-     SET messages_used = $1,
-         conversation = $2::jsonb,
-         status = $3,
-         tokens_used = COALESCE(tokens_used, 0) + $4,
-         updated_at = NOW()
-     WHERE id = $5`,
-    [
-      newCount,
-      JSON.stringify(newConversation),
-      isCompleted ? 'completed' : 'active',
-      result.tokens.total,
-      id,
-    ]
-  )
+  try {
+    await query(
+      `UPDATE demo_sessions
+       SET messages_used = $1,
+           conversation = $2::jsonb,
+           status = $3,
+           tokens_used = COALESCE(tokens_used, 0) + $4,
+           updated_at = NOW()
+       WHERE id = $5`,
+      [
+        newCount,
+        JSON.stringify(newConversation),
+        isCompleted ? 'completed' : 'active',
+        result.tokens.total,
+        id,
+      ]
+    )
+  } catch (err) {
+    console.error('[Demo message] DB update error:', err)
+    // Devolvemos la respuesta de todas formas — el update es eventual
+  }
 
   if (isCompleted) {
     triggerN8n('demo-completed', {

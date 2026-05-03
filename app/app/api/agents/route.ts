@@ -19,6 +19,14 @@ interface AgentRow {
   demo_available: boolean
 }
 
+const CATEGORY_DISPLAY: Record<string, string> = {
+  ventas: 'Ventas',
+  soporte: 'Soporte',
+  marketing: 'Marketing',
+  ecommerce: 'E-commerce',
+  operaciones: 'Operaciones',
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const category = searchParams.get('category')
@@ -52,7 +60,12 @@ export async function GET(req: NextRequest) {
     params
   )
 
-  await cacheSet(cacheKey, agents, 300) // 5 min cache
+  const normalized = agents.map(a => ({
+    ...a,
+    category: CATEGORY_DISPLAY[a.category?.toLowerCase()] ?? a.category,
+  }))
 
-  return NextResponse.json({ agents })
+  await cacheSet(cacheKey, normalized, 300)
+
+  return NextResponse.json({ agents: normalized })
 }
