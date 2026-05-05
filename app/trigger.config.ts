@@ -1,7 +1,7 @@
 import { defineConfig } from '@trigger.dev/sdk'
 
 export default defineConfig({
-  project: process.env.TRIGGER_PROJECT_REF ?? 'proj_replace_with_your_ref',
+  project: 'proj_acnxykuxtbobgwsblzde',
   dirs: ['./trigger'],
   maxDuration: 300, // 5 min max por tarea
   retries: {
