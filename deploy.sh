@@ -35,6 +35,9 @@ docker compose build app --no-cache
 
 # ── 4. Levantar / actualizar todos los servicios ──
 echo "[4/8] Levantando servicios (app + metabase)..."
+# Limpiar contenedores detenidos para evitar conflictos de nombre en recreate
+docker container prune -f > /dev/null 2>&1 || true
+docker compose up -d --remove-orphans --force-recreate app
 docker compose up -d --remove-orphans
 
 # ── 5. Wait for app to be healthy ──
