@@ -1,5 +1,16 @@
 # TuAgenteStore — CLAUDE.md
 
+@.claude/context/project.md
+@.claude/context/decisions.md
+@.claude/context/roadmap.md
+
+## Instrucciones de comportamiento para Claude
+- **Antes de cualquier cambio de UI/frontend:** invocar skill `/frontend-design` para aplicar guardrails de diseño
+- **Para deployar:** invocar skill `/deploy` — nunca SSH manual sin el script
+- **Para ops destructivas (rm -rf, force push, DROP TABLE):** pedir confirmación explícita al usuario antes de ejecutar
+- **Git root es `v1/`** — staging siempre con paths relativos a `v1/`
+- **SSH al VPS:** usar Bash tool (no PowerShell) con `ssh -i ~/.ssh/id_ed25519 root@76.13.172.79`
+
 ## Project overview
 B2B marketplace of AI agents for Latin American SMBs. Landing → lead → n8n → email → admin pipeline.
 Domain: tuagentestore.com | VPS: 76.13.172.79 | GitHub: tuagentestore/tuagentestarev1 (branch: main)
