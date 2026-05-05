@@ -20,14 +20,16 @@ description: Fases de desarrollo del producto con estado actual
 ## V2 — Diferenciación (EN PROGRESO)
 - [x] `.claude/` skills + context files (productividad dev ↑↑)
 - [x] settings.local.json (protección ops destructivas)
-- [ ] Voice Agent `/demo/voz` — Gemini Flash Live API, agente "Vera Voice"
-  - Backend: FastAPI + WebSocket + Gemini SDK (contenedor `tuagentestore-voice-1`)
-  - Frontend: WebAudio API + AudioWorklet
-  - Herramientas: pricing, disponibilidad de agentes, Calendly booking
-- [ ] Trigger.dev para automatización programada robusta
-  - `app/trigger/daily-report.ts` — cron 08:00 AR
-  - `app/trigger/lead-nurture.ts` — delay task D+3
-  - Reemplaza WF10 y WF15 step 2
+- [x] Voice Agent `/demo/voz` — OpenAI Realtime API (WebRTC, voz "shimmer")
+  - `app/api/voice/session/route.ts` — ephemeral token endpoint
+  - `components/voice/VoiceDemoClient.tsx` — WebRTC + AudioContext visualizer
+  - Tools: capture_lead, book_demo, get_agents, get_pricing
+- [x] Trigger.dev v4 para automatización programada robusta
+  - `app/trigger.config.ts`, `app/trigger/daily-report.ts`, `app/trigger/lead-nurture.ts`
+  - `daily-report`: cron 11:00 UTC (08:00 ART) → n8n `daily-report` webhook
+  - `lead-nurture`: delay 3 días → n8n `lead-nurture-d3` webhook
+  - `/api/leads` dispara nurture task (non-fatal si no hay TRIGGER_SECRET_KEY)
+  - **Pendiente activación**: crear proyecto en trigger.dev → `TRIGGER_PROJECT_REF` + `TRIGGER_SECRET_KEY` → `npx trigger.dev deploy`
 
 ## V3 — Escala (PLANIFICADO)
 - [ ] WhatsApp Bridge (WF06) — Meta Business App configurada

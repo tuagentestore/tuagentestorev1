@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { queryOne } from '@/lib/db'
+import { tasks } from '@trigger.dev/sdk'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,17 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(payload),
     }).catch((e) => console.warn('[leads] WF15 webhook failed:', e)),
   ])
+
+  // Nurture D+3 via Trigger.dev (no bloquea, falla silenciosamente si no hay TRIGGER_SECRET_KEY)
+  if (leadId) {
+    tasks.trigger('lead-nurture', {
+      leadId, name, email,
+      company: company ?? undefined,
+      industry: industry ?? undefined,
+      problem_area: problem_area ?? undefined,
+      custom_problem: custom_problem ?? undefined,
+    }).catch((e) => console.warn('[leads] Trigger.dev nurture failed (no key?):', e))
+  }
 
   return NextResponse.json({
     ok: true,
