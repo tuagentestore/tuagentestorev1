@@ -268,6 +268,7 @@
       ]
     }
   },
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "saveExecutionProgress": true,
@@ -275,8 +276,9 @@
     "errorWorkflow": ""
   },
   "staticData": null,
-  "tags": ["vera", "chat", "sales", "ia"],
+  "tags": ["vera", "chat", "sales", "ia", "wat-optimized"],
   "triggerCount": 0,
-  "updatedAt": "2026-04-16T00:00:00.000Z",
-  "versionId": "1"
+  "updatedAt": "2026-05-05T00:00:00.000Z",
+  "versionId": "2",
+  "notes": "WAT: Vera, la asistente IA de TuAgenteStore. Inputs: messages[] (historial). Detecta leads con alto interés (palabras clave: precio, contratar, activar, etc.) y los notifica al CRM vía /lead-created. Usa gpt-4o-mini con max_tokens:400 y timeout:30s. No requiere auth — es pública para el chat del sitio."
 }

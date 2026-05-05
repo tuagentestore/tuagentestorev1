@@ -239,6 +239,6 @@
   },
   "active": false,
   "settings": { "executionOrder": "v1" },
-  "tags": ["whatsapp", "ai", "bridge"],
-  "notes": "Conectar en Meta: Webhook URL = https://n8n.srv1565607.hstgr.cloud/webhook/whatsapp | Verify Token = WHATSAPP_VERIFY_TOKEN del .env | Suscribir a: messages"
+  "tags": ["whatsapp", "ai", "bridge", "wat-optimized"],
+  "notes": "WAT: Clasifica mensajes WhatsApp con IA y responde automáticamente. Mantener inactive hasta configurar Meta Business App. REQUISITOS PARA ACTIVAR: (1) Crear Meta Business App + WhatsApp Business Account, (2) agregar WHATSAPP_BSP_API_KEY al .env del VPS, (3) configurar webhook en Meta: URL = https://n8n.srv1565607.hstgr.cloud/webhook/whatsapp | Verify Token = WHATSAPP_VERIFY_TOKEN | Suscribir a: messages."
 }

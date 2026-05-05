@@ -1,5 +1,6 @@
 {
   "name": "02 — Demo Started → Log en Sheets",
+  "notes": "WAT: Registra cada inicio de demo en 'Demo Sessions'. Inputs: session_id, agent_slug, agent_name, user_email, ip_address. Outputs: fila en 'Demo Sessions'. Responde 200 antes de procesar para no bloquear al caller.",
   "nodes": [
     {
       "parameters": {
@@ -46,6 +47,18 @@
     },
     {
       "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
         "operation": "append",
         "documentId": {
           "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}",
@@ -58,15 +71,13 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Date": "={{ new Date().toLocaleString('es-AR') }}",
+            "Fecha": "={{ new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) }}",
             "Session ID": "={{ $json.body.session_id }}",
-            "Agent": "={{ $json.body.agent_slug }}",
-            "Agent Name": "={{ $json.body.agent_name }}",
-            "User Email": "={{ $json.body.user_email || 'anonymous' }}",
+            "Agente": "={{ $json.body.agent_name || $json.body.agent_slug }}",
+            "Email Usuario": "={{ $json.body.user_email || 'anonymous' }}",
             "IP": "={{ $json.body.ip_address }}",
-            "Status": "started",
-            "Messages": "0",
-            "Completed": "false"
+            "Mensajes": "0",
+            "Status": "started"
           }
         },
         "options": {}
@@ -75,7 +86,8 @@
       "name": "Log Demo en Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [650, 200],
+      "position": [650, 300],
+      "continueOnFail": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "google-oauth2",
@@ -85,15 +97,42 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={ \"ok\": true }",
-        "options": {}
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ !!$json.error }}",
+              "value2": true
+            }
+          ]
+        }
       },
-      "id": "success-response",
-      "name": "200 OK",
-      "type": "n8n-nodes-base.respondToWebhook",
+      "id": "check-error",
+      "name": "IF: ¿Hubo error?",
+      "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [900, 200]
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "⚠️ WF02 Error — Demo Started no pudo loggear",
+        "message": "={{ 'Error en WF02 (Demo Started):\\n\\nSession ID: ' + $('Webhook: demo-started').first().json.body.session_id + '\\nAgente: ' + $('Webhook: demo-started').first().json.body.agent_slug + '\\n\\nError: ' + ($json.error?.message || JSON.stringify($json.error) || 'Ver logs de n8n') + '\\n\\nTimestamp: ' + new Date().toISOString() }}",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "n8n Alertas TuAgenteStore"
+        }
+      },
+      "id": "error-alert",
+      "name": "Email: Error Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1100, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
     }
   ],
   "connections": {
@@ -102,12 +141,21 @@
     },
     "Verify Secret": {
       "main": [
-        [{ "node": "Log Demo en Sheets", "type": "main", "index": 0 }],
+        [
+          { "node": "200 OK", "type": "main", "index": 0 },
+          { "node": "Log Demo en Sheets", "type": "main", "index": 0 }
+        ],
         [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
       ]
     },
     "Log Demo en Sheets": {
-      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "IF: ¿Hubo error?", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿Hubo error?": {
+      "main": [
+        [{ "node": "Email: Error Alert", "type": "main", "index": 0 }],
+        []
+      ]
     }
   },
   "settings": {
@@ -115,7 +163,7 @@
     "timezone": "America/Argentina/Buenos_Aires"
   },
   "staticData": null,
-  "tags": [{ "name": "demos" }, { "name": "fase-2" }],
+  "tags": [{ "name": "demos" }, { "name": "fase-2" }, { "name": "wat-optimized" }],
   "triggerCount": 1,
-  "active": false
+  "active": true
 }

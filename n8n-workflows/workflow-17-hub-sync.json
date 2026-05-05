@@ -1,0 +1,301 @@
+{
+  "name": "17 — Master Hub Sync Pipeline → Dashboard + Web + Email",
+  "notes": "WAT: Disparado por Apps Script (onEdit del Master Hub o deploy manual). Lee todas las hojas del Google Sheets Master Hub, calcula métricas agregadas, actualiza la tab Dashboard, pushea a /api/admin/metrics-sync (Redis), y envía email reporte al admin. Inputs: trigger (apps-script|manual), spreadsheetId, timestamp. Outputs: Dashboard tab actualizado, Redis key hub:metrics, email HTML con reporte completo.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hub-sync",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf17-webhook",
+      "name": "Webhook: hub-sync",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "hub-sync"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $request.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET_INTERNAL }}"
+            }
+          ]
+        }
+      },
+      "id": "wf17-verify",
+      "name": "Verify Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "wf17-401",
+      "name": "401 Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true, \"message\": \"hub-sync queued\" }",
+        "options": {}
+      },
+      "id": "wf17-200",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "Leads Master", "mode": "name" },
+        "filters": {},
+        "options": {}
+      },
+      "id": "wf17-read-leads",
+      "name": "Leer Leads Master",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 150],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "Demo Sessions", "mode": "name" },
+        "filters": {},
+        "options": {}
+      },
+      "id": "wf17-read-demos",
+      "name": "Leer Demo Sessions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 300],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "Reservations Pipeline", "mode": "name" },
+        "filters": {},
+        "options": {}
+      },
+      "id": "wf17-read-reservations",
+      "name": "Leer Reservations Pipeline",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 450],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "Testimonios", "mode": "name" },
+        "filters": {},
+        "options": {}
+      },
+      "id": "wf17-read-testimonios",
+      "name": "Leer Testimonios",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 600],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "Content Calendar", "mode": "name" },
+        "filters": {},
+        "options": {}
+      },
+      "id": "wf17-read-content",
+      "name": "Leer Content Calendar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 750],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recolectar todos los datos de las hojas\nconst leads        = $('Leer Leads Master').all().map(i => i.json);\nconst demos        = $('Leer Demo Sessions').all().map(i => i.json);\nconst reservations = $('Leer Reservations Pipeline').all().map(i => i.json);\nconst testimonios  = $('Leer Testimonios').all().map(i => i.json);\nconst content      = $('Leer Content Calendar').all().map(i => i.json);\n\n// ── FUNNEL ──────────────────────────────────────\nconst totalLeads        = leads.length;\nconst totalDemos        = demos.length;\nconst demosCompleted    = demos.filter(d => (d.Status || d.status || '').toLowerCase() === 'completed').length;\nconst totalReservations = reservations.length;\nconst paid              = reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'paid').length;\nconst cancelled         = reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'cancelled').length;\nconst noShow            = reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'no_show').length;\nconst revenueUSD        = paid * 397;\n\n// ── CONVERSIONES ────────────────────────────────\nconst leadToDemo        = totalLeads > 0  ? ((totalDemos / totalLeads) * 100).toFixed(1) + '%' : '0%';\nconst demoToReservation = totalDemos > 0  ? ((totalReservations / totalDemos) * 100).toFixed(1) + '%' : '0%';\nconst reservationToPaid = totalReservations > 0 ? ((paid / totalReservations) * 100).toFixed(1) + '%' : '0%';\nconst overallConversion = totalLeads > 0 ? ((paid / totalLeads) * 100).toFixed(1) + '%' : '0%';\n\n// ── PIPELINE STATUS ─────────────────────────────\nconst pipeline = {\n  new:       reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'new').length,\n  contacted: reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'contacted').length,\n  qualified: reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'qualified').length,\n  validated: reservations.filter(r => (r.Estado || r.status || '').toLowerCase() === 'validated').length,\n  paid,\n  cancelled,\n  no_show: noShow\n};\n\n// ── AGENTES ─────────────────────────────────────\nconst agentNames = ['Sales AI Closer', 'AI Lead Engine', 'AI Support Agent', 'Marketing AI Agent', 'E-Commerce Agent', 'Appointment Setting Agent'];\nconst agents = agentNames.map(name => ({\n  name,\n  demos:        demos.filter(d => (d.Agente || d['Agent Name'] || d.agent_name || '').toLowerCase().includes(name.toLowerCase().split(' ')[0])).length,\n  reservations: reservations.filter(r => (r.Agente || r.agent || '').toLowerCase().includes(name.toLowerCase().split(' ')[0])).length,\n  testimonials: testimonios.filter(t => (t['Agente Usado'] || t.agente || '').toLowerCase().includes(name.toLowerCase().split(' ')[0])).length\n}));\n\n// ── TESTIMONIOS / NPS ────────────────────────────\nconst validTestimonios = testimonios.filter(t => {\n  const score = parseInt(t['Calificación (1-5)'] || t.calificacion || t.score || 0);\n  return score > 0;\n});\nconst avgRating = validTestimonios.length > 0\n  ? (validTestimonios.reduce((sum, t) => sum + parseInt(t['Calificación (1-5)'] || t.calificacion || 0), 0) / validTestimonios.length).toFixed(1)\n  : 0;\nconst fiveStar            = testimonios.filter(t => parseInt(t['Calificación (1-5)'] || 0) === 5).length;\nconst authorizedToPublish = testimonios.filter(t => (t['Autoriza Publicar'] || t.autoriza || '').toLowerCase() === 'sí').length;\n\n// ── CONTENIDO ───────────────────────────────────\nconst contentStats = {\n  pending:   content.filter(c => (c.Status || c.status || '').toLowerCase() === 'pending').length,\n  generated: content.filter(c => (c.Status || c.status || '').toLowerCase() === 'generated').length,\n  approved:  content.filter(c => (c.Status || c.status || '').toLowerCase() === 'approved').length,\n  published: content.filter(c => (c.Status || c.status || '').toLowerCase() === 'published').length,\n  total:     content.length\n};\n\n// ── TENDENCIA SEMANAL ────────────────────────────\nconst now = new Date();\nconst oneWeekAgo  = new Date(now - 7 * 24 * 60 * 60 * 1000);\nconst twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);\n\nconst parseDate = str => {\n  if (!str) return new Date(0);\n  const parts = str.split('/').map(Number);\n  if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);\n  return new Date(str);\n};\n\nconst thisWeekLeads  = leads.filter(l => parseDate(l.Fecha) >= oneWeekAgo).length;\nconst lastWeekLeads  = leads.filter(l => { const d = parseDate(l.Fecha); return d >= twoWeeksAgo && d < oneWeekAgo; }).length;\nconst thisWeekPaid   = reservations.filter(r => parseDate(r.Fecha) >= oneWeekAgo && (r.Estado || '').toLowerCase() === 'paid').length;\nconst lastWeekPaid   = reservations.filter(r => { const d = parseDate(r.Fecha); return d >= twoWeeksAgo && d < oneWeekAgo && (r.Estado || '').toLowerCase() === 'paid'; }).length;\n\nconst updatedAt = now.toISOString();\nconst updatedLabel = now.toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });\n\nconst metrics = {\n  updatedAt,\n  updatedLabel,\n  funnel: { leads: totalLeads, demos: totalDemos, demosCompleted, reservations: totalReservations, paid },\n  conversionRates: { leadToDemo, demoToReservation, reservationToPaid, overall: overallConversion },\n  revenue: { estimatedUSD: revenueUSD, paidCount: paid },\n  pipeline,\n  agents,\n  testimonials: { total: testimonios.length, avgRating: parseFloat(avgRating), fiveStar, authorizedToPublish },\n  content: contentStats,\n  weeklyTrend: {\n    thisWeek:  { leads: thisWeekLeads, paid: thisWeekPaid },\n    lastWeek:  { leads: lastWeekLeads, paid: lastWeekPaid },\n    delta:     { leads: thisWeekLeads - lastWeekLeads, paid: thisWeekPaid - lastWeekPaid }\n  }\n};\n\nreturn [{ json: metrics }];"
+      },
+      "id": "wf17-calculate",
+      "name": "Calcular Métricas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1150, 400]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}", "mode": "id" },
+        "sheetName": { "value": "📊 Dashboard", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "B2": "={{ $json.updatedLabel }}",
+            "B5": "={{ $json.funnel.leads }}",
+            "B6": "={{ $json.funnel.demos }}",
+            "B7": "={{ $json.funnel.reservations }}",
+            "B8": "={{ $json.funnel.paid }}",
+            "B9": "={{ $json.revenue.estimatedUSD }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf17-update-dashboard",
+      "name": "Actualizar Dashboard Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1400, 250],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "google-oauth2", "name": "Google OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.NEXT_PUBLIC_APP_URL || 'https://tuagentestore.com') + '/api/admin/metrics-sync' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ $json }}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf17-push-api",
+      "name": "Push a /api/admin/metrics-sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1400, 420],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const m = $('Calcular Métricas').first().json;\nconst trend = m.weeklyTrend;\nconst sign = n => n > 0 ? '+' + n : '' + n;\n\nconst agentRows = (m.agents || []).map(a =>\n  `  ${a.name.padEnd(30)} | Demos: ${String(a.demos).padStart(3)} | Reservas: ${String(a.reservations).padStart(3)} | Testimonios: ${String(a.testimonials).padStart(3)}`\n).join('\\n');\n\nconst html = `\n<!DOCTYPE html>\n<html lang=\"es\">\n<head><meta charset=\"UTF-8\"><style>\n  body { font-family: Inter, Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 24px; }\n  .container { max-width: 680px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }\n  .header { background: linear-gradient(135deg, #1a2744, #2563EB); padding: 28px 32px; color: #fff; }\n  .header h1 { margin: 0; font-size: 20px; font-weight: 700; }\n  .header p { margin: 4px 0 0; opacity: 0.7; font-size: 13px; }\n  .section { padding: 20px 32px; border-bottom: 1px solid #e5e7eb; }\n  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin: 0 0 12px; }\n  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }\n  .kpi { background: #f8faff; border-radius: 8px; padding: 12px; text-align: center; }\n  .kpi-val { font-size: 28px; font-weight: 800; color: #1e3a6e; }\n  .kpi-label { font-size: 11px; color: #6b7280; margin-top: 2px; }\n  .kpi-sub { font-size: 10px; color: #9ca3af; }\n  .conv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e5e7eb; font-size: 13px; }\n  .conv-label { color: #6b7280; }\n  .conv-val { font-weight: 700; color: #2563EB; }\n  .agent-row { display: grid; grid-template-columns: 1fr 80px 80px 80px; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }\n  .agent-name { font-weight: 600; color: #374151; }\n  .agent-num { text-align: center; color: #4F46E5; font-weight: 700; }\n  .footer { padding: 16px 32px; background: #f8faff; font-size: 12px; color: #9ca3af; }\n  .trend { font-size: 11px; }\n  .up { color: #059669; } .down { color: #dc2626; } .flat { color: #6b7280; }\n</style></head>\n<body>\n<div class=\"container\">\n  <div class=\"header\">\n    <h1>TUAGENTESTORE — Hub Sync Report</h1>\n    <p>Actualizado: ${m.updatedLabel}</p>\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Embudo de Conversión</p>\n    <div class=\"kpi-grid\">\n      <div class=\"kpi\"><div class=\"kpi-val\">${m.funnel.leads}</div><div class=\"kpi-label\">Leads</div><div class=\"kpi-sub\">Esta semana: ${trend.thisWeek.leads} <span class=\"${trend.delta.leads >= 0 ? 'up' : 'down'}\">(${sign(trend.delta.leads)})</span></div></div>\n      <div class=\"kpi\"><div class=\"kpi-val\">${m.funnel.demos}</div><div class=\"kpi-label\">Demos</div></div>\n      <div class=\"kpi\"><div class=\"kpi-val\">${m.funnel.reservations}</div><div class=\"kpi-label\">Reservas</div></div>\n      <div class=\"kpi\"><div class=\"kpi-val\">${m.funnel.paid}</div><div class=\"kpi-label\">Pagos</div><div class=\"kpi-sub\">Esta semana: ${trend.thisWeek.paid} <span class=\"${trend.delta.paid >= 0 ? 'up' : 'down'}\">(${sign(trend.delta.paid)})</span></div></div>\n      <div class=\"kpi\" style=\"background:#f0fdf4\"><div class=\"kpi-val\" style=\"color:#059669\">$${m.revenue.estimatedUSD.toLocaleString()}</div><div class=\"kpi-label\">Revenue Est. USD</div></div>\n      <div class=\"kpi\"><div class=\"kpi-val\">${m.conversionRates.overall}</div><div class=\"kpi-label\">Conv. global</div></div>\n    </div>\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Tasas de Conversión</p>\n    <div class=\"conv-row\"><span class=\"conv-label\">Lead → Demo</span><span class=\"conv-val\">${m.conversionRates.leadToDemo}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Demo → Reserva</span><span class=\"conv-val\">${m.conversionRates.demoToReservation}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Reserva → Pago</span><span class=\"conv-val\">${m.conversionRates.reservationToPaid}</span></div>\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Pipeline — Estado de Leads</p>\n    <div class=\"conv-row\"><span class=\"conv-label\">🆕 Nuevo</span><span class=\"conv-val\">${m.pipeline.new}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">📞 Contactado</span><span class=\"conv-val\">${m.pipeline.contacted}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">✅ Calificado</span><span class=\"conv-val\">${m.pipeline.qualified}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">🔍 Validado</span><span class=\"conv-val\">${m.pipeline.validated}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">💰 Pagado</span><span class=\"conv-val\">${m.pipeline.paid}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">❌ Cancelado</span><span class=\"conv-val\">${m.pipeline.cancelled}</span></div>\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Agentes — Métricas</p>\n    <div class=\"agent-row\" style=\"font-weight:700;color:#6b7280;font-size:11px\">\n      <span>Agente</span><span style=\"text-align:center\">Demos</span><span style=\"text-align:center\">Reservas</span><span style=\"text-align:center\">Test.</span>\n    </div>\n    ${m.agents.map(a => `<div class=\"agent-row\"><span class=\"agent-name\">${a.name}</span><span class=\"agent-num\">${a.demos}</span><span class=\"agent-num\">${a.reservations}</span><span class=\"agent-num\">${a.testimonials}</span></div>`).join('')}\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Testimonios & NPS</p>\n    <div class=\"conv-row\"><span class=\"conv-label\">Total testimonios</span><span class=\"conv-val\">${m.testimonials.total}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Calificación promedio</span><span class=\"conv-val\">${m.testimonials.avgRating} / 5 ⭐</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">5 estrellas</span><span class=\"conv-val\">${m.testimonials.fiveStar}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Autorizados a publicar</span><span class=\"conv-val\">${m.testimonials.authorizedToPublish}</span></div>\n  </div>\n\n  <div class=\"section\">\n    <p class=\"section-title\">Calendario de Contenido</p>\n    <div class=\"conv-row\"><span class=\"conv-label\">Pendiente</span><span class=\"conv-val\">${m.content.pending}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Generado</span><span class=\"conv-val\">${m.content.generated}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Aprobado</span><span class=\"conv-val\">${m.content.approved}</span></div>\n    <div class=\"conv-row\"><span class=\"conv-label\">Publicado</span><span class=\"conv-val\">${m.content.published}</span></div>\n  </div>\n\n  <div class=\"footer\">\n    Ver dashboard: <a href=\"https://tuagentestore.com/admin/hub\" style=\"color:#2563EB\">tuagentestore.com/admin/hub</a> ·\n    Panel admin: <a href=\"https://tuagentestore.com/admin\" style=\"color:#2563EB\">tuagentestore.com/admin</a>\n  </div>\n</div>\n</body></html>\n`;\n\nreturn [{ json: { html, subject: '📊 Hub Sync Report — ' + new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) } }];"
+      },
+      "id": "wf17-build-email",
+      "name": "Construir Email Reporte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 600]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "TuAgenteStore Hub Sync"
+        }
+      },
+      "id": "wf17-send-email",
+      "name": "Gmail: Reporte al Admin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1650, 600],
+      "continueOnFail": true,
+      "credentials": {
+        "gmailOAuth2": { "id": "gmail-oauth2", "name": "Gmail OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "⚠️ WF17 Error — Hub Sync falló",
+        "message": "={{ 'Error en WF17 (Hub Sync):\\n\\nTimestamp: ' + new Date().toISOString() + '\\n\\nVerificar:\\n- Credenciales Google Sheets en n8n\\n- Endpoint /api/admin/metrics-sync activo\\n- Credenciales Gmail\\n\\nVer logs en n8n: https://n8n.srv1565607.hstgr.cloud' }}",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "n8n Alertas TuAgenteStore"
+        }
+      },
+      "id": "wf17-error-alert",
+      "name": "Email: Error Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1650, 800],
+      "credentials": {
+        "gmailOAuth2": { "id": "gmail-oauth2", "name": "Gmail OAuth2" }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: hub-sync": {
+      "main": [[{ "node": "Verify Secret", "type": "main", "index": 0 }]]
+    },
+    "Verify Secret": {
+      "main": [
+        [
+          { "node": "200 OK", "type": "main", "index": 0 },
+          { "node": "Leer Leads Master", "type": "main", "index": 0 },
+          { "node": "Leer Demo Sessions", "type": "main", "index": 0 },
+          { "node": "Leer Reservations Pipeline", "type": "main", "index": 0 },
+          { "node": "Leer Testimonios", "type": "main", "index": 0 },
+          { "node": "Leer Content Calendar", "type": "main", "index": 0 }
+        ],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
+      ]
+    },
+    "Leer Leads Master": {
+      "main": [[{ "node": "Calcular Métricas", "type": "main", "index": 0 }]]
+    },
+    "Calcular Métricas": {
+      "main": [[
+        { "node": "Actualizar Dashboard Sheet", "type": "main", "index": 0 },
+        { "node": "Push a /api/admin/metrics-sync", "type": "main", "index": 0 },
+        { "node": "Construir Email Reporte", "type": "main", "index": 0 }
+      ]]
+    },
+    "Construir Email Reporte": {
+      "main": [[{ "node": "Gmail: Reporte al Admin", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "staticData": null,
+  "tags": [{ "name": "hub-sync" }, { "name": "metrics" }, { "name": "reporting" }, { "name": "wat-optimized" }],
+  "triggerCount": 1,
+  "active": true
+}

@@ -61,6 +61,29 @@ app.tuagentestore.com {
     }
 }
 
+# ── HUB METRICS DASHBOARD ──
+hub.tuagentestore.com {
+    reverse_proxy app:3000
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        -Server
+    }
+
+    encode gzip
+
+    log {
+        output file /data/logs/hub-access.log {
+            roll_size 10mb
+            roll_keep 3
+        }
+    }
+}
+
 # ── N8N (subdominio) ──
 n8n.tuagentestore.com, n8n.srv1565607.hstgr.cloud {
     reverse_proxy n8n:5678

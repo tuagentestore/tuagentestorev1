@@ -218,8 +218,8 @@
     },
     "Verify Secret": {
       "main": [
-        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }],
-        [{ "node": "200 OK", "type": "main", "index": 0 }]
+        [{ "node": "200 OK", "type": "main", "index": 0 }],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
       ]
     },
     "200 OK": {
@@ -253,8 +253,8 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": { "executionOrder": "v1" },
-  "tags": ["testimonial", "feedback", "casos"],
-  "notes": "Dos webhooks: POST /webhook/request-testimonial (triggerado desde la app X días post-implementación) y POST /webhook/testimonial-received (desde el form de feedback en tuagentestore.com/feedback). Guarda todo en sheet Testimoniales."
+  "tags": ["testimonial", "feedback", "casos", "wat-optimized"],
+  "notes": "WAT: Recolecta testimonios de clientes. Dos webhooks: POST /request-testimonial (triggerado X días post-implementación, inputs: email, name, company, industry, agent_name, tenant_id, token, days_since) y POST /testimonial-received (desde form en /feedback, inputs: tenant_id, score, testimonial, name, company, industry, agent_name, loom_url). BUG CORREGIDO: Verify Secret conexiones estaban invertidas — ahora main[0]=authorized, main[1]=401."
 }

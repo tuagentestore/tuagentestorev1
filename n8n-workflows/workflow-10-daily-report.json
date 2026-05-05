@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "url": "=https://tuagentestore.com/api/admin/dashboard",
+        "url": "={{ ($env.NEXT_PUBLIC_APP_URL || 'https://tuagentestore.com') + '/api/admin/dashboard' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -32,7 +32,7 @@
     },
     {
       "parameters": {
-        "url": "=https://tuagentestore.com/api/admin/reservations?status=all&period=today",
+        "url": "={{ ($env.NEXT_PUBLIC_APP_URL || 'https://tuagentestore.com') + '/api/admin/reservations?status=all&period=today' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -143,8 +143,8 @@
       ]]
     }
   },
-  "active": false,
+  "active": true,
   "settings": { "executionOrder": "v1", "timezone": "America/Argentina/Buenos_Aires" },
-  "tags": ["reporting", "schedule", "kpis"],
-  "notes": "Corre todos los días a las 9 AM Argentina (12:00 UTC). Llama a /api/admin/dashboard y /api/admin/reservations, compila reporte, envía por email al admin, actualiza hoja KPIs, archiva en Weekly Reports. IMPORTANTE: el endpoint /api/admin/dashboard debe ser accesible desde n8n (mismo servidor o con autenticación)."
+  "tags": ["reporting", "schedule", "kpis", "wat-optimized"],
+  "notes": "WAT: Reporte diario automático a las 9 AM Argentina (12:00 UTC). Llama a /api/admin/dashboard y /api/admin/reservations usando $env.NEXT_PUBLIC_APP_URL (antes hardcodeado). Outputs: email al admin con KPIs del día, fila en hoja KPIs, fila en Weekly Reports."
 }

@@ -1,5 +1,6 @@
 {
   "name": "03 — Demo Completed → Follow-up 2h + 24h",
+  "notes": "WAT: Envía 2 emails de follow-up (2h y 24h) tras completar una demo. Antes de cada email verifica si el lead ya convirtió (reserva con status != new). Inputs: session_id, user_email, user_name, agent_name, agent_slug, message_count. Outputs: 2 emails de follow-up (si no convirtió).",
   "nodes": [
     {
       "parameters": {
@@ -82,13 +83,50 @@
       "name": "Esperar 2 horas",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [900, 250]
+      "position": [880, 300]
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.body.user_email }}",
-        "subject": "¿Cómo estuvo tu demo con {{ $json.body.agent_name }}?",
-        "message": "Hola{{ $json.body.user_name ? ' ' + $json.body.user_name : '' }},\n\nEsperamos que la demo de **{{ $json.body.agent_name }}** haya sido útil.\n\n¿Tenés preguntas sobre cómo implementarlo en tu negocio? Estamos listos para ayudarte.\n\n👉 **[Reservar activación →](https://tuagentestore.com/agents/{{ $json.body.agent_slug }})**\n\nO respondé este email y te contactamos hoy.\n\nSaludos,\nEquipo TuAgente Store",
+        "url": "={{ ($env.NEXT_PUBLIC_APP_URL || 'https://tuagentestore.com') + '/api/admin/reservations' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" }
+          ]
+        },
+        "options": { "timeout": 10000 }
+      },
+      "id": "check-conversion-2h",
+      "name": "Check: ¿convirtió? (2h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1080, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue": "={{ ($json.reservations || []).find(r => r.user_email === $('Webhook: demo-completed').first().json.body.user_email && r.status !== 'new') }}",
+              "rightValue": "",
+              "operator": { "type": "object", "operation": "notEmpty" }
+            }
+          ]
+        }
+      },
+      "id": "if-converted-2h",
+      "name": "IF: ¿ya convirtió? (2h)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1280, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: demo-completed').first().json.body.user_email }}",
+        "subject": "={{ '¿Cómo estuvo tu demo con ' + $('Webhook: demo-completed').first().json.body.agent_name + '?' }}",
+        "message": "={{ 'Hola' + ($('Webhook: demo-completed').first().json.body.user_name ? ' ' + $('Webhook: demo-completed').first().json.body.user_name : '') + ',\\n\\nEsperamos que la demo de **' + $('Webhook: demo-completed').first().json.body.agent_name + '** haya sido útil.\\n\\n¿Tenés preguntas sobre cómo implementarlo en tu negocio? Estamos listos para ayudarte.\\n\\n👉 **[Reservar activación →](https://tuagentestore.com/agents/' + $('Webhook: demo-completed').first().json.body.agent_slug + ')**\\n\\nO respondé este email y te contactamos hoy.\\n\\nSaludos,\\nEquipo TuAgente Store' }}",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store"
@@ -98,7 +136,8 @@
       "name": "Email: Follow-up 2h",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [1100, 200],
+      "position": [1480, 300],
+      "continueOnFail": true,
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail-oauth2",
@@ -115,13 +154,50 @@
       "name": "Esperar 22h más (total 24h)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1,
-      "position": [1300, 200]
+      "position": [1680, 300]
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.body.user_email }}",
-        "subject": "Última oportunidad: activá {{ $json.body.agent_name }} esta semana",
-        "message": "Hola{{ $json.body.user_name ? ' ' + $json.body.user_name : '' }},\n\nAyer probaste **{{ $json.body.agent_name }}** y vimos que llegaste al límite de la demo.\n\nTus competidores ya están usando agentes IA para automatizar ventas y soporte. **No te quedes atrás.**\n\n✅ Setup en 24 horas\n✅ Sin contrato de permanencia\n✅ Soporte en español\n\n👉 **[Reservar activación ahora →](https://tuagentestore.com/agents/{{ $json.body.agent_slug }})**\n\nPrecio: desde $397/mes · Sin cargo por reservar.\n\nSaludos,\nEquipo TuAgente Store",
+        "url": "={{ ($env.NEXT_PUBLIC_APP_URL || 'https://tuagentestore.com') + '/api/admin/reservations' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-webhook-secret", "value": "={{ $env.WEBHOOK_SECRET_INTERNAL }}" }
+          ]
+        },
+        "options": { "timeout": 10000 }
+      },
+      "id": "check-conversion-24h",
+      "name": "Check: ¿convirtió? (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1880, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue": "={{ ($json.reservations || []).find(r => r.user_email === $('Webhook: demo-completed').first().json.body.user_email && r.status !== 'new') }}",
+              "rightValue": "",
+              "operator": { "type": "object", "operation": "notEmpty" }
+            }
+          ]
+        }
+      },
+      "id": "if-converted-24h",
+      "name": "IF: ¿ya convirtió? (24h)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2080, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook: demo-completed').first().json.body.user_email }}",
+        "subject": "={{ 'Última oportunidad: activá ' + $('Webhook: demo-completed').first().json.body.agent_name + ' esta semana' }}",
+        "message": "={{ 'Hola' + ($('Webhook: demo-completed').first().json.body.user_name ? ' ' + $('Webhook: demo-completed').first().json.body.user_name : '') + ',\\n\\nAyer probaste **' + $('Webhook: demo-completed').first().json.body.agent_name + '** y vimos que llegaste al límite de la demo.\\n\\nTus competidores ya están usando agentes IA para automatizar ventas y soporte. **No te quedes atrás.**\\n\\n✅ Setup en 24 horas\\n✅ Sin contrato de permanencia\\n✅ Soporte en español\\n\\n👉 **[Reservar activación ahora →](https://tuagentestore.com/agents/' + $('Webhook: demo-completed').first().json.body.agent_slug + ')**\\n\\nPrecio: desde $397/mes · Sin cargo por reservar.\\n\\nSaludos,\\nEquipo TuAgente Store' }}",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store"
@@ -131,7 +207,8 @@
       "name": "Email: Follow-up 24h",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [1500, 200],
+      "position": [2280, 300],
+      "continueOnFail": true,
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail-oauth2",
@@ -160,13 +237,31 @@
       ]
     },
     "Esperar 2 horas": {
-      "main": [[{ "node": "Email: Follow-up 2h", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Check: ¿convirtió? (2h)", "type": "main", "index": 0 }]]
+    },
+    "Check: ¿convirtió? (2h)": {
+      "main": [[{ "node": "IF: ¿ya convirtió? (2h)", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿ya convirtió? (2h)": {
+      "main": [
+        [],
+        [{ "node": "Email: Follow-up 2h", "type": "main", "index": 0 }]
+      ]
     },
     "Email: Follow-up 2h": {
       "main": [[{ "node": "Esperar 22h más (total 24h)", "type": "main", "index": 0 }]]
     },
     "Esperar 22h más (total 24h)": {
-      "main": [[{ "node": "Email: Follow-up 24h", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Check: ¿convirtió? (24h)", "type": "main", "index": 0 }]]
+    },
+    "Check: ¿convirtió? (24h)": {
+      "main": [[{ "node": "IF: ¿ya convirtió? (24h)", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿ya convirtió? (24h)": {
+      "main": [
+        [],
+        [{ "node": "Email: Follow-up 24h", "type": "main", "index": 0 }]
+      ]
     }
   },
   "settings": {
@@ -174,7 +269,7 @@
     "timezone": "America/Argentina/Buenos_Aires"
   },
   "staticData": null,
-  "tags": [{ "name": "demos" }, { "name": "followup" }, { "name": "fase-2" }],
+  "tags": [{ "name": "demos" }, { "name": "followup" }, { "name": "fase-2" }, { "name": "wat-optimized" }],
   "triggerCount": 1,
-  "active": false
+  "active": true
 }

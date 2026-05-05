@@ -231,7 +231,8 @@
     "timezone": "America/Argentina/Buenos_Aires"
   },
   "staticData": null,
-  "tags": [{ "name": "reservations" }, { "name": "fase-2" }],
+  "tags": [{ "name": "reservations" }, { "name": "fase-2" }, { "name": "wat-optimized" }],
   "triggerCount": 1,
-  "active": true
+  "active": true,
+  "notes": "WAT: Confirma reservas. Inputs: reservation_id, user_name, user_email, phone, company, industry, agent_name/slug, plan_interest, preferred_date. Outputs: email HTML al lead, alerta HTML al admin, fila en Reservations Pipeline, evento en Google Calendar (si hay fecha). continueOnFail en Gmail/Sheets para resiliencia."
 }

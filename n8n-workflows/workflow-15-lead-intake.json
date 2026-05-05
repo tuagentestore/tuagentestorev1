@@ -35,7 +35,7 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": "Leads",
+          "value": "Leads Master",
           "mode": "name"
         },
         "columns": {
@@ -263,10 +263,11 @@
       "main": [[{ "node": "Gmail: oferta diagnóstico gratuito", "type": "main", "index": 0 }]]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "timezone": "America/Argentina/Buenos_Aires"
   },
-  "tags": ["lead-funnel", "email-nurture", "production"]
+  "tags": ["lead-funnel", "email-nurture", "production", "wat-optimized"],
+  "notes": "WAT: Funnel avanzado de leads desde /empezar. Inputs: name, email, whatsapp, company, industry, problem_area, company_size, budget_range, channel_origin, wants_call. Outputs: fila en 'Leads Master' (FIX: antes apuntaba a hoja 'Leads' inexistente), email segmentado por problema, secuencia 48h→7d si no convierte. Dedup: compartido con WF01, ambos leen Leads Master. responseMode:onReceived responde 200 automáticamente."
 }

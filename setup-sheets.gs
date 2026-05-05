@@ -5,11 +5,27 @@
  * 1. Ir a https://script.google.com/home/projects/1i5nCfEa-OxUj5SdmUqS9XgYcOhC_AMZRuU43inZdSp5eohAXhrCZ0Uk3/edit
  * 2. Reemplazar TODO el código con este archivo
  * 3. Ejecutar la función deseada:
- *    - setupAll()         → Crea todas las hojas desde cero
- *    - addTestimonials()  → Solo agrega la hoja de testimonios (si ya existe el spreadsheet)
- *    - refreshDashboard() → Recalcula el dashboard manualmente
+ *    - setupAll()          → Crea todas las hojas desde cero + dispara hub-sync
+ *    - addTestimonials()   → Solo agrega la hoja de testimonios
+ *    - refreshDashboard()  → Recalcula el dashboard manualmente
+ *    - deployMetrics()     → Dispara WF17 (hub-sync) manualmente
+ *    - setupTimeTrigger()  → Configura trigger horario automático (ejecutar una vez)
  * 4. Autorizar permisos cuando lo pida
+ *
+ * AUTO-DEPLOY: Cada vez que edites el Sheets, onEdit() dispara deployMetrics()
+ * automáticamente con un debounce de 5 segundos para evitar llamadas excesivas.
  */
+
+// ─────────────────────────────────────────────────
+// CONFIGURACIÓN HUB SYNC (WF17)
+// ─────────────────────────────────────────────────
+const HUB_SYNC = {
+  webhookUrl: 'https://n8n.srv1565607.hstgr.cloud/webhook/hub-sync',
+  // Mismo valor que WEBHOOK_SECRET_INTERNAL en el .env del VPS
+  // Para obtenerlo: SSH al VPS y ejecutar: cat /opt/tuagentestore/.env | grep WEBHOOK_SECRET_INTERNAL
+  secret: PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRET') || 'REEMPLAZAR_CON_WEBHOOK_SECRET_INTERNAL',
+  debounceMs: 5000  // Tiempo mínimo entre llamadas automáticas (evita spam en onEdit)
+}
 
 // ─────────────────────────────────────────────────
 // CONFIGURACIÓN
@@ -34,6 +50,105 @@ const CONFIG = {
     danger: '#fee2e2',
     starYellow: '#FCD34D',
   }
+}
+
+// ─────────────────────────────────────────────────
+// HUB SYNC — Auto-deploy hacia WF17
+// ─────────────────────────────────────────────────
+
+/**
+ * Menú personalizado en el Sheets
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🤖 TuAgenteStore')
+    .addItem('Actualizar Métricas (Hub Sync)', 'deployMetrics')
+    .addSeparator()
+    .addItem('Setup Completo (crear hojas)', 'setupAll')
+    .addItem('Configurar trigger horario', 'setupTimeTrigger')
+    .addToUi()
+}
+
+/**
+ * Trigger automático en cada edición del Sheets.
+ * Solo dispara si la hoja editada NO es el Dashboard (evitar loops).
+ * Debounce de 5s usando ScriptProperties.
+ */
+function onEdit(e) {
+  try {
+    const editedSheet = e.source.getActiveSheet().getName()
+    if (editedSheet === '📊 Dashboard') return  // Evitar loop: Dashboard es output, no input
+
+    const props = PropertiesService.getScriptProperties()
+    const lastTrigger = parseInt(props.getProperty('lastHubSync') || '0')
+    const now = Date.now()
+
+    if (now - lastTrigger < HUB_SYNC.debounceMs) return  // Debounce activo
+
+    props.setProperty('lastHubSync', now.toString())
+    deployMetrics()
+  } catch (err) {
+    Logger.log('onEdit error (no crítico): ' + err.toString())
+  }
+}
+
+/**
+ * Dispara WF17 (hub-sync) via POST al webhook de n8n.
+ * Llamar manualmente desde el menú o desde setupAll().
+ */
+function deployMetrics() {
+  try {
+    const secret = HUB_SYNC.secret
+    if (!secret || secret.startsWith('REEMPLAZAR')) {
+      Logger.log('⚠️  WEBHOOK_SECRET no configurado. Guardar en Propiedades del Script: WEBHOOK_SECRET')
+      return
+    }
+
+    const options = {
+      method: 'post',
+      headers: {
+        'x-webhook-secret': secret,
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify({
+        trigger: 'apps-script',
+        spreadsheetId: CONFIG.spreadsheetId,
+        timestamp: new Date().toISOString()
+      }),
+      muteHttpExceptions: true
+    }
+
+    const response = UrlFetchApp.fetch(HUB_SYNC.webhookUrl, options)
+    const code = response.getResponseCode()
+    Logger.log('Hub Sync disparado — HTTP ' + code)
+
+    if (code !== 200) {
+      Logger.log('⚠️ Respuesta inesperada: ' + response.getContentText())
+    }
+  } catch (err) {
+    Logger.log('deployMetrics error: ' + err.toString())
+  }
+}
+
+/**
+ * Configura un trigger de tiempo para ejecutar deployMetrics() cada hora.
+ * Ejecutar MANUALMENTE UNA SOLA VEZ desde el editor de Apps Script.
+ * Para eliminar: ir a Triggers → borrar manualmente.
+ */
+function setupTimeTrigger() {
+  // Eliminar triggers existentes de deployMetrics para evitar duplicados
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction() === 'deployMetrics') {
+      ScriptApp.deleteTrigger(t)
+    }
+  })
+
+  ScriptApp.newTrigger('deployMetrics')
+    .timeBased()
+    .everyHours(1)
+    .create()
+
+  Logger.log('✅ Trigger horario configurado: deployMetrics() cada 1 hora')
 }
 
 // ─────────────────────────────────────────────────
@@ -64,6 +179,10 @@ function setupAll() {
   Logger.log('📊 URL: ' + ss.getUrl())
   Logger.log('GOOGLE_SPREADSHEET_ID=' + ss.getId())
   Logger.log('─────────────────────────────────────────')
+
+  // Auto-deploy: disparar WF17 para sincronizar métricas iniciales
+  Logger.log('🔄 Disparando Hub Sync inicial...')
+  deployMetrics()
 }
 
 // Agrega solo la hoja de testimonios a un spreadsheet existente

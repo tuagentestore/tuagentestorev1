@@ -1,5 +1,6 @@
 {
   "name": "01 — Lead Created → Sheets + Email Bienvenida",
+  "notes": "WAT: Captura leads del webhook /lead-created. Inputs: user_name, user_email, phone, company, industry, agent_slug, plan_interest, use_case, reservation_id. Outputs: fila en 'Leads Master', email de bienvenida al lead, alerta al admin. Dedup por email para evitar doble registro con WF15.",
   "nodes": [
     {
       "parameters": {
@@ -35,16 +36,71 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({error: 'Unauthorized'}) }}",
-        "options": {
-          "responseCode": 401
-        }
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
       },
       "id": "unauthorized-response",
       "name": "401 Unauthorized",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
+        "operation": "lookup",
+        "documentId": {
+          "value": "={{ $env.GOOGLE_SPREADSHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Leads Master",
+          "mode": "name"
+        },
+        "lookupColumn": "Email",
+        "lookupValue": "={{ $json.body.user_email }}",
+        "options": { "returnAllMatches": false }
+      },
+      "id": "dedup-check",
+      "name": "Dedup: ¿Email ya existe?",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 300],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-oauth2",
+          "name": "Google OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.Email || '' }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "is-new-lead",
+      "name": "IF: ¿Es lead nuevo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [880, 300]
     },
     {
       "parameters": {
@@ -60,18 +116,17 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Date": "={{ new Date($json.body.created_at || Date.now()).toLocaleString('es-AR') }}",
-            "Name": "={{ $json.body.user_name }}",
-            "Email": "={{ $json.body.user_email }}",
-            "Phone": "={{ $json.body.phone }}",
-            "Company": "={{ $json.body.company }}",
-            "Industry": "={{ $json.body.industry }}",
-            "Agent": "={{ $json.body.agent_slug }}",
-            "Plan": "={{ $json.body.plan_interest }}",
-            "Use Case": "={{ $json.body.use_case }}",
-            "Status": "new",
-            "Source": "={{ $json.body.utm_source || 'organic' }}",
-            "Reservation ID": "={{ $json.body.reservation_id }}"
+            "Fecha": "={{ new Date($('Webhook: lead-created').first().json.body.created_at || Date.now()).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) }}",
+            "Lead ID": "={{ $('Webhook: lead-created').first().json.body.reservation_id || ('LEAD-' + Date.now()) }}",
+            "Nombre": "={{ $('Webhook: lead-created').first().json.body.user_name }}",
+            "Email": "={{ $('Webhook: lead-created').first().json.body.user_email }}",
+            "Teléfono": "={{ $('Webhook: lead-created').first().json.body.phone }}",
+            "Empresa": "={{ $('Webhook: lead-created').first().json.body.company }}",
+            "Industria": "={{ $('Webhook: lead-created').first().json.body.industry }}",
+            "Agente": "={{ $('Webhook: lead-created').first().json.body.agent_slug }}",
+            "Fuente": "={{ $('Webhook: lead-created').first().json.body.utm_source || 'organic' }}",
+            "Plan": "={{ $('Webhook: lead-created').first().json.body.plan_interest }}",
+            "Estado": "new"
           }
         },
         "options": {}
@@ -80,7 +135,8 @@
       "name": "Append to Leads Master",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [650, 200],
+      "position": [1100, 200],
+      "continueOnFail": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "google-oauth2",
@@ -90,9 +146,9 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.body.user_email }}",
+        "sendTo": "={{ $('Webhook: lead-created').first().json.body.user_email }}",
         "subject": "¡Tu solicitud fue recibida! — TuAgente Store",
-        "message": "Hola {{ $json.body.user_name }},\n\nRecibimos tu solicitud para el agente **{{ $json.body.agent_name || $json.body.agent_slug }}**.\n\nNuestro equipo te contactará en **menos de 24 horas hábiles** para coordinar los próximos pasos.\n\n**Tu solicitud:**\n- Plan: {{ $json.body.plan_interest || 'starter' }}\n- Empresa: {{ $json.body.company || '—' }}\n- Industria: {{ $json.body.industry || '—' }}\n\nSi tenés alguna pregunta, respondé este email o escribinos a hola@tuagentestore.com.\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com",
+        "message": "Hola {{ $('Webhook: lead-created').first().json.body.user_name }},\n\nRecibimos tu solicitud para el agente **{{ $('Webhook: lead-created').first().json.body.agent_name || $('Webhook: lead-created').first().json.body.agent_slug }}**.\n\nNuestro equipo te contactará en **menos de 24 horas hábiles** para coordinar los próximos pasos.\n\n**Tu solicitud:**\n- Plan: {{ $('Webhook: lead-created').first().json.body.plan_interest || 'starter' }}\n- Empresa: {{ $('Webhook: lead-created').first().json.body.company || '—' }}\n- Industria: {{ $('Webhook: lead-created').first().json.body.industry || '—' }}\n\nSi tenés alguna pregunta, respondé este email o escribinos a hola@tuagentestore.com.\n\nSaludos,\nEquipo TuAgente Store\nhttps://tuagentestore.com",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store"
@@ -102,7 +158,8 @@
       "name": "Email: Bienvenida al Lead",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [900, 100],
+      "position": [1350, 150],
+      "continueOnFail": true,
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail-oauth2",
@@ -113,8 +170,8 @@
     {
       "parameters": {
         "sendTo": "={{ $env.ADMIN_EMAIL }}",
-        "subject": "🔔 Nuevo lead: {{ $json.body.user_name }} ({{ $json.body.plan_interest }})",
-        "message": "Nuevo lead recibido:\n\n**Nombre:** {{ $json.body.user_name }}\n**Email:** {{ $json.body.user_email }}\n**Teléfono:** {{ $json.body.phone }}\n**Empresa:** {{ $json.body.company || '—' }}\n**Industria:** {{ $json.body.industry || '—' }}\n**Agente:** {{ $json.body.agent_slug }}\n**Plan:** {{ $json.body.plan_interest }}\n**Caso de uso:** {{ $json.body.use_case || '—' }}\n**ID Reserva:** {{ $json.body.reservation_id }}\n\nVer en admin: https://tuagentestore.com/admin",
+        "subject": "={{ '🔔 Nuevo lead: ' + $('Webhook: lead-created').first().json.body.user_name + ' (' + ($('Webhook: lead-created').first().json.body.plan_interest || 'starter') + ')' }}",
+        "message": "Nuevo lead recibido:\n\n**Nombre:** {{ $('Webhook: lead-created').first().json.body.user_name }}\n**Email:** {{ $('Webhook: lead-created').first().json.body.user_email }}\n**Teléfono:** {{ $('Webhook: lead-created').first().json.body.phone }}\n**Empresa:** {{ $('Webhook: lead-created').first().json.body.company || '—' }}\n**Industria:** {{ $('Webhook: lead-created').first().json.body.industry || '—' }}\n**Agente:** {{ $('Webhook: lead-created').first().json.body.agent_slug }}\n**Plan:** {{ $('Webhook: lead-created').first().json.body.plan_interest }}\n**Caso de uso:** {{ $('Webhook: lead-created').first().json.body.use_case || '—' }}\n**ID Reserva:** {{ $('Webhook: lead-created').first().json.body.reservation_id }}\n\nVer en admin: https://tuagentestore.com/admin",
         "options": {
           "fromEmail": "={{ $env.GMAIL_FROM }}",
           "fromName": "TuAgente Store Ops"
@@ -124,7 +181,8 @@
       "name": "Email: Alerta Admin",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2,
-      "position": [900, 300],
+      "position": [1350, 320],
+      "continueOnFail": true,
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail-oauth2",
@@ -134,15 +192,25 @@
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "={ \"ok\": true }",
-        "options": {}
+        "sendTo": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "⚠️ WF01 Error — Lead Created falló",
+        "message": "={{ 'Error en WF01 (Lead Created):\\n\\nEmail del lead: ' + $('Webhook: lead-created').first().json.body.user_email + '\\nNombre: ' + $('Webhook: lead-created').first().json.body.user_name + '\\n\\nError: ' + ($json.error?.message || JSON.stringify($json.error) || 'Ver logs de n8n') + '\\n\\nTimestamp: ' + new Date().toISOString() }}",
+        "options": {
+          "fromEmail": "={{ $env.GMAIL_FROM }}",
+          "fromName": "n8n Alertas TuAgenteStore"
+        }
       },
-      "id": "success-response",
-      "name": "200 OK",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [1150, 200]
+      "id": "error-alert",
+      "name": "Email: Error Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [1100, 480],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail-oauth2",
+          "name": "Gmail OAuth2"
+        }
+      }
     }
   ],
   "connections": {
@@ -151,26 +219,41 @@
     },
     "Verify Secret": {
       "main": [
-        [{ "node": "Append to Leads Master", "type": "main", "index": 0 }],
+        [
+          { "node": "200 OK", "type": "main", "index": 0 },
+          { "node": "Dedup: ¿Email ya existe?", "type": "main", "index": 0 }
+        ],
         [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
       ]
     },
+    "Dedup: ¿Email ya existe?": {
+      "main": [[{ "node": "IF: ¿Es lead nuevo?", "type": "main", "index": 0 }]]
+    },
+    "IF: ¿Es lead nuevo?": {
+      "main": [
+        [{ "node": "Append to Leads Master", "type": "main", "index": 0 }],
+        []
+      ]
+    },
     "Append to Leads Master": {
-      "main": [[
-        { "node": "Email: Bienvenida al Lead", "type": "main", "index": 0 },
-        { "node": "Email: Alerta Admin", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          { "node": "Email: Bienvenida al Lead", "type": "main", "index": 0 },
+          { "node": "Email: Alerta Admin", "type": "main", "index": 0 }
+        ]
+      ]
     },
     "Email: Bienvenida al Lead": {
-      "main": [[{ "node": "200 OK", "type": "main", "index": 0 }]]
+      "main": [[]]
     }
   },
   "settings": {
     "executionOrder": "v1",
-    "timezone": "America/Argentina/Buenos_Aires"
+    "timezone": "America/Argentina/Buenos_Aires",
+    "errorWorkflow": ""
   },
   "staticData": null,
-  "tags": [{ "name": "leads" }, { "name": "fase-2" }],
+  "tags": [{ "name": "leads" }, { "name": "fase-2" }, { "name": "wat-optimized" }],
   "triggerCount": 1,
-  "active": false
+  "active": true
 }

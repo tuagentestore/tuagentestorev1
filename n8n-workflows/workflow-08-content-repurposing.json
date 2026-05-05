@@ -187,8 +187,8 @@
     },
     "Verify Secret": {
       "main": [
-        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }],
-        [{ "node": "200 OK - Procesando", "type": "main", "index": 0 }]
+        [{ "node": "200 OK - Procesando", "type": "main", "index": 0 }],
+        [{ "node": "401 Unauthorized", "type": "main", "index": 0 }]
       ]
     },
     "200 OK - Procesando": {
@@ -208,8 +208,8 @@
       "main": [[{ "node": "Gmail: Enviar a Admin para Revisión", "type": "main", "index": 0 }]]
     }
   },
-  "active": false,
+  "active": true,
   "settings": { "executionOrder": "v1" },
-  "tags": ["content", "openai", "multi-canal"],
-  "notes": "Trigger: POST /webhook/content-repurpose con { topic, format, agent, industry, context }. Genera LinkedIn + Instagram + TikTok + Twitter thread + Email + WhatsApp. Guarda en Content Calendar sheet y notifica por email para revisión antes de publicar."
+  "tags": ["content", "openai", "multi-canal", "wat-optimized"],
+  "notes": "WAT: Genera contenido multi-canal desde un tema. Inputs: topic, format, agent, industry, context. Outputs: LinkedIn, Instagram, TikTok, Twitter, Email, WhatsApp guardados en Content Calendar + email al admin. BUG CORREGIDO: Verify Secret conexiones estaban invertidas (main[0]=401, main[1]=200 → ahora main[0]=200, main[1]=401). Parseo de OpenAI tiene fallback para JSON malformado."
 }
