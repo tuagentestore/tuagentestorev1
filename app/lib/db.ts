@@ -4,6 +4,9 @@ let pool: Pool | undefined
 
 function getPool(): Pool {
   if (!pool) {
+    if (!process.env.DATABASE_URL) {
+      console.error('[DB] FATAL: DATABASE_URL env var is not set. All database operations will fail.')
+    }
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 20,

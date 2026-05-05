@@ -111,6 +111,8 @@ export default function VideoSection({ title, subtitle, videoId, ctaLabel, ctaHr
     return () => obs.disconnect()
   }, [title, page])
 
+  if (!videoId) return null
+
   return (
     <section ref={containerRef} className="py-12 sm:py-20 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

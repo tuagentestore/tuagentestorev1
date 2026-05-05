@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Star, ArrowRight, GitCompare, X, Rocket } from 'lucide-react'
+import { Bot, Zap, CheckCircle, ArrowLeft, Play, Clock, Sparkles, ArrowRight, GitCompare, X, Rocket, Calendar } from 'lucide-react'
 import DemoChat from './DemoChat'
 import ReservationForm from './ReservationForm'
 
@@ -240,8 +240,8 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
                   Setup en {agent.setup_time_hours ?? 24}h
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  5.0 valoración
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Nuevo
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle className="w-4 h-4 text-green-400" />
@@ -455,6 +455,15 @@ export default function AgentDetailClient({ slug }: { slug: string }) {
               >
                 Reservar activación
               </button>
+              <a
+                href="https://calendly.com/tuagentestore-info/30min"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full mt-2 py-3 bg-card border border-border text-foreground rounded-xl font-medium text-sm hover:border-primary/40 hover:bg-muted transition-all flex items-center justify-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Agendá diagnóstico
+              </a>
 
               <p className="text-xs text-muted-foreground text-center mt-4">
                 Sin tarjeta de crédito · Respondemos en &lt;2h

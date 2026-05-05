@@ -70,17 +70,8 @@ export default function N8nCatalogClient() {
     })
   }, [search, activeCategory, showPremiumOnly])
 
-  /* Loading skeleton */
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  /* ── Auth gate ── */
-  if (!user) {
+  /* ── Auth gate (shown immediately while loading or when unauthenticated) ── */
+  if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -126,8 +117,8 @@ export default function N8nCatalogClient() {
             })}
           </div>
 
-          {/* Lock overlay */}
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background via-background/80 to-transparent">
+          {/* Lock overlay — only after auth confirms no user */}
+          {!authLoading && !user && <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background via-background/80 to-transparent">
             <div className="text-center max-w-md px-6">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-primary" />
@@ -158,7 +149,7 @@ export default function N8nCatalogClient() {
                 <Link href="/login" className="text-primary hover:underline">Ingresá acá</Link>
               </p>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     )

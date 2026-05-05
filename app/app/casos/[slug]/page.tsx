@@ -23,7 +23,7 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tuagentestore.com'
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const c = await getCase(slug)
-  if (!c) return { title: 'Caso no encontrado | TuAgenteStore' }
+  if (!c) return { title: 'Caso no encontrado' }
 
   const desc = c.summary_bullets?.[0] ?? `Caso de implementación en ${c.industry}`
   const ogUrl = `${BASE}/api/og?title=${encodeURIComponent(c.title)}&subtitle=${encodeURIComponent(`${c.primary_metric_value} ${c.primary_metric_label} · ${c.industry}`)}&type=case`

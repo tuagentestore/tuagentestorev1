@@ -9,6 +9,7 @@ import AgendaSection from '@/components/home/AgendaSection'
 import CTASection from '@/components/home/CTASection'
 import VideoSection from '@/components/home/VideoSection'
 import ProblemChips from '@/components/home/ProblemChips'
+import FAQ from '@/components/home/FAQ'
 
 export default function HomePage() {
   return (
@@ -27,6 +28,7 @@ export default function HomePage() {
       <CasosPreview />
       <WizardCTA />
       <SocialProof />
+      <FAQ />
       <AgendaSection />
       <CTASection />
     </>

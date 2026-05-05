@@ -44,7 +44,8 @@ export default function HeroPrimary() {
     tl
       .fromTo('.hero-badge',     { autoAlpha: 0, y: -16 }, { autoAlpha: 1, y: 0, duration: 0.4 })
       .fromTo('.hero-title',     { autoAlpha: 0, y: 32 },  { autoAlpha: 1, y: 0, duration: 0.6 }, '-=0.15')
-      .fromTo('.hero-sub',       { autoAlpha: 0, y: 20 },  { autoAlpha: 1, y: 0, duration: 0.5 }, '-=0.3')
+      .fromTo('.hero-h2',        { autoAlpha: 0, y: 16 },  { autoAlpha: 1, y: 0, duration: 0.45 }, '-=0.25')
+      .fromTo('.hero-sub',       { autoAlpha: 0, y: 20 },  { autoAlpha: 1, y: 0, duration: 0.5 }, '-=0.2')
       .fromTo('.hero-ctas',      { autoAlpha: 0, y: 16 },  { autoAlpha: 1, y: 0, duration: 0.4 }, '-=0.2')
       .fromTo('.hero-microproof',{ autoAlpha: 0 },          { autoAlpha: 1, duration: 0.3 }, '-=0.15')
       .fromTo('.hero-stat',      { autoAlpha: 0, y: 20 },  { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.1 }, '-=0.15')
@@ -98,6 +99,12 @@ export default function HeroPrimary() {
             .
           </h1>
 
+          {/* Value prop subtitle */}
+          <h2 className="hero-h2 text-xl sm:text-2xl font-semibold text-foreground/80 mb-4 leading-snug">
+            El marketplace de sistemas agénticos.{' '}
+            <span className="text-foreground">Activamos agentes IA en tu operación en menos de 48h.</span>
+          </h2>
+
           {/* Subheadline */}
           <p className="hero-sub text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8 max-w-2xl mx-auto">
             TuAgente Store implementa sistemas agénticos para empresas que ya tienen operación
@@ -115,13 +122,15 @@ export default function HeroPrimary() {
               Mirá cómo se ve el sistema
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
-              href="/contact?type=demo"
-              onClick={() => trackClick('Agendá una llamada', { page: '/', metadata: { section: 'hero', position: 'secondary_cta' } })}
+            <a
+              href="https://calendly.com/tuagentestore-info/30min"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackClick('Agendá tu diagnóstico', { page: '/', metadata: { section: 'hero', position: 'secondary_cta' } })}
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-card border border-border text-foreground rounded-xl font-semibold text-base hover:border-primary/50 hover:bg-muted transition-all"
             >
-              Agendá una llamada
-            </Link>
+              Agendá tu diagnóstico
+            </a>
           </div>
 
           {/* Microproof */}

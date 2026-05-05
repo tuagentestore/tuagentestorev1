@@ -3,7 +3,7 @@ import { BookOpen, Zap, Settings, Code2, MessageSquare, LifeBuoy } from 'lucide-
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Documentación | TuAgenteStore',
+  title: 'Documentación',
   description: 'Guías, tutoriales y referencias técnicas para activar y usar tus agentes IA.',
 }
 

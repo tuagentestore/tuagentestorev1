@@ -4,7 +4,7 @@ import CompareClient from '@/components/marketplace/CompareClient'
 import { Bot } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Comparar Agentes IA | TuAgenteStore',
+  title: 'Comparar Agentes IA',
   description: 'Comparás agentes IA lado a lado para elegir el que mejor se adapta a tu negocio.',
 }
 

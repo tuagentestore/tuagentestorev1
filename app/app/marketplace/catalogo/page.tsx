@@ -4,7 +4,7 @@ import N8nCatalogClient from '@/components/marketplace/N8nCatalogClient'
 import { Bot } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Catálogo de Automatizaciones n8n | TuAgenteStore',
+  title: 'Catálogo de Automatizaciones n8n',
   description: 'Accedé al catálogo completo de automatizaciones n8n: WhatsApp, Email, Telegram, IA, RRHH y más. Exclusivo para miembros.',
 }
 

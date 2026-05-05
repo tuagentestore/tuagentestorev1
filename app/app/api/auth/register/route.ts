@@ -9,6 +9,8 @@ const RegisterSchema = z.object({
   email: z.string().email().toLowerCase(),
   password: z.string().min(8).max(128),
   company: z.string().optional(),
+  phone: z.string().optional(),
+  industry: z.string().optional(),
   role: z.enum(['buyer', 'vendor']).default('buyer'),
 })
 
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { name, email, password, company, role } = parsed.data
+    const { name, email, password, company, phone, industry, role } = parsed.data
 
     // Check if email already exists
     const existing = await queryOne('SELECT id FROM users WHERE email = $1', [email])
@@ -62,6 +64,9 @@ export async function POST(req: NextRequest) {
       user_id: result.userId,
       email,
       name,
+      company,
+      phone,
+      industry,
       tenant_id: result.tenantId,
       role,
       source: 'registration',

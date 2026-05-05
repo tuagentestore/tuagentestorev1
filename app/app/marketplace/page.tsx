@@ -5,7 +5,7 @@ import { cacheGet, cacheSet } from '@/lib/redis'
 import MarketplaceClient, { type Agent } from '@/components/marketplace/MarketplaceClient'
 
 export const metadata: Metadata = {
-  title: 'Marketplace de Agentes IA | TuAgenteStore',
+  title: 'Marketplace de Agentes IA',
   description: 'Explorá, comparás y activás agentes IA para tu empresa. Ventas, soporte, marketing y operaciones en 24 horas.',
 }
 

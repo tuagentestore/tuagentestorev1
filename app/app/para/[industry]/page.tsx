@@ -344,7 +344,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const data = industries[industry]
   if (!data) return { title: 'No encontrado' }
   return {
-    title: `Agentes IA para ${data.name} | TuAgenteStore`,
+    title: `Agentes IA para ${data.name}`,
     description: data.subheadline,
     openGraph: { title: data.headline, description: data.subheadline },
   }

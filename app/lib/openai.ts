@@ -4,6 +4,9 @@ let openaiClient: OpenAI | undefined
 
 function getClient(): OpenAI {
   if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('[OpenAI] FATAL: OPENAI_API_KEY env var is not set. Demo chat will not work.')
+    }
     openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   }
   return openaiClient

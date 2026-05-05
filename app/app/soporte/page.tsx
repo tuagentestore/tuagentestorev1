@@ -3,7 +3,7 @@ import { LifeBuoy, MessageCircle, Mail, Clock, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Soporte | TuAgenteStore',
+  title: 'Soporte',
   description: 'Canales de soporte, SLA por plan y preguntas frecuentes.',
 }
 

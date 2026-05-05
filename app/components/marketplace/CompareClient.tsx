@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Bot, CheckCircle, X, ArrowLeft, Play, ArrowRight, Plus, Clock, Zap, Users } from 'lucide-react'
+import { Bot, CheckCircle, X, ArrowLeft, Play, ArrowRight, Plus, Clock, Zap, Users, BarChart3, Layers } from 'lucide-react'
 
 interface Agent {
   id: string
@@ -95,7 +95,7 @@ export default function CompareClient() {
           </div>
 
           <div className="text-center mb-10">
-            <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Elegí hasta 3 agentes para comparar</h2>
             <p className="text-muted-foreground text-sm">Seleccioná los agentes que querés analizar en detalle.</p>
           </div>
@@ -110,7 +110,7 @@ export default function CompareClient() {
                   className="bg-card border border-border rounded-2xl p-5 text-left hover:border-primary/40 hover:shadow-custom transition-all duration-200 group"
                 >
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center mb-3`}>
-                    <Bot className="w-5 h-5 text-white" />
+                    <Layers className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="font-bold text-foreground text-sm mb-1">{a.name}</h3>
                   <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{a.tagline}</p>

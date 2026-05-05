@@ -10,7 +10,7 @@ function RegisterForm() {
   const searchParams = useSearchParams()
   const oauthError = searchParams.get('error')
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', company: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', company: '', phone: '', industry: '' })
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(
@@ -82,6 +82,38 @@ function RegisterForm() {
               onChange={e => setForm(p => ({ ...p, company: e.target.value }))}
               className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium text-foreground mb-1.5">Teléfono <span className="text-muted-foreground font-normal">(opcional)</span></label>
+            <input
+              type="tel"
+              placeholder="+54 11 1234-5678"
+              value={form.phone}
+              onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium text-foreground mb-1.5">Industria</label>
+            <select
+              value={form.industry}
+              onChange={e => setForm(p => ({ ...p, industry: e.target.value }))}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+            >
+              <option value="">Seleccioná...</option>
+              <option value="retail">Retail / eCommerce</option>
+              <option value="inmobiliaria">Inmobiliaria</option>
+              <option value="salud">Salud / Clínicas</option>
+              <option value="educacion">Educación</option>
+              <option value="turismo">Turismo / Hospitalidad</option>
+              <option value="servicios">Servicios profesionales</option>
+              <option value="logistica">Logística y transporte</option>
+              <option value="tecnologia">Tecnología</option>
+              <option value="otra">Otra</option>
+            </select>
           </div>
         </div>
 
