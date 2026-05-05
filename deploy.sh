@@ -63,11 +63,11 @@ curl -sf "http://localhost:3000/api/agents?featured=true" > /dev/null \
 
 # ── 6. Aplicar seeds si hay nuevos ──
 echo "[6/8] Ejecutando seeds de DB..."
-if [ -f "./database/seeds/001_agents_fixed.sql" ]; then
+if [ -f "./database/seeds/001_agents.sql" ]; then
   docker compose exec -T postgres psql \
     -U "${POSTGRES_USER:-tuagentestore}" \
     -d "${POSTGRES_DB:-tuagentestore}" \
-    -f /backups/seeds/001_agents_fixed.sql \
+    -f /backups/seeds/001_agents.sql \
     2>/dev/null && echo "  Seeds ejecutados." || echo "  Seeds ya aplicados (skip)."
 fi
 
