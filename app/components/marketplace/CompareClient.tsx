@@ -72,8 +72,11 @@ export default function CompareClient() {
 
   const addAgent = (slug: string) => {
     const newAgents = [...agents]
-    if (addingSlot !== null) newAgents[addingSlot] = ALL_AGENTS.find(a => a.slug === slug)!
-    else newAgents.push(ALL_AGENTS.find(a => a.slug === slug)!)
+    if (addingSlot !== null && addingSlot >= 0) {
+      newAgents[addingSlot] = ALL_AGENTS.find(a => a.slug === slug)!
+    } else {
+      newAgents.push(ALL_AGENTS.find(a => a.slug === slug)!)
+    }
     const params = newAgents.map((a, i) => `${'abc'[i]}=${a.slug}`).join('&')
     router.push(`/marketplace/comparar?${params}`)
     setAddingSlot(null)

@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     )
     leadId = row?.id
   } catch (err) {
-    console.error('[leads] DB error:', err)
-    return NextResponse.json({ error: 'Error al guardar el lead. Intentá de nuevo.' }, { status: 500 })
+    // DB unavailable — log and continue; n8n webhooks still capture the lead
+    console.error('[leads] DB error (non-fatal):', err)
   }
 
   const payload = {

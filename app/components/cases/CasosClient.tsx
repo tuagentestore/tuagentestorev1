@@ -69,7 +69,7 @@ function CaseCard({ c }: { c: Case }) {
   const color = INDUSTRY_COLORS[c.industry] ?? 'from-blue-500 to-indigo-500'
   const ba = BEFORE_AFTER[c.slug]
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col shrink-0" style={{ width: 340, height: 490 }}>
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-custom transition-all duration-300 group flex flex-col h-full">
       {/* Metric banner */}
       <div className={`bg-gradient-to-r ${color} p-5`}>
         <div className="flex items-start justify-between">
@@ -177,9 +177,6 @@ export default function CasosClient() {
       .finally(() => setLoading(false))
   }, [industry])
 
-  // Duplicate once for infinite scroll (-50% marquee technique)
-  const carouselCases = cases.length > 0 ? [...cases, ...cases] : []
-
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
@@ -233,12 +230,12 @@ export default function CasosClient() {
         </div>
       </div>
 
-      {/* Infinite carousel */}
-      <div className="py-8">
+      {/* Grid de casos */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {loading ? (
-          <div className="flex gap-6 px-4 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-card border border-border rounded-2xl h-80 animate-pulse shrink-0" style={{ width: 340 }} />
+              <div key={i} className="bg-card border border-border rounded-2xl h-[490px] animate-pulse" />
             ))}
           </div>
         ) : cases.length === 0 ? (
@@ -248,27 +245,9 @@ export default function CasosClient() {
               Ver todos los casos
             </button>
           </div>
-        ) : cases.length <= 2 ? (
-          /* If few cases, show simple grid */
-          <div className="flex gap-6 justify-center flex-wrap px-4 max-w-6xl mx-auto">
-            {cases.map(c => <CaseCard key={c.id} c={c} />)}
-          </div>
         ) : (
-          /* Infinite carousel */
-          <div
-            className="relative w-full overflow-hidden"
-            style={{
-              maskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-            }}
-          >
-            <div className="flex animate-marquee-cases" style={{ width: 'max-content' }}>
-              {carouselCases.map((c, i) => (
-                <div key={`${c.id}-${i}`} className="mx-3">
-                  <CaseCard c={c} />
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cases.map(c => <CaseCard key={c.id} c={c} />)}
           </div>
         )}
       </div>
